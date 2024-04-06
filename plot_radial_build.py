@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
 
-def build_composition_string(composition):
+def build_composition_string(composition, max_characters):
     """
     Assembles string from composition dict for use in radial build plot
 
@@ -15,14 +15,20 @@ def build_composition_string(composition):
 
     comp_string = ''
     for material, fraction in composition.items():
-        comp_string += f'{material}: {round(fraction*100,3)}%, '
+        
+        mat_string = f'{material}: {round(fraction*100,3)}%, '
+        line_len =len(comp_string)-(comp_string+mat_string).rfind('\n')
 
-    comp_string = comp_string[0:-2]
+        if line_len > max_characters:
+            comp_string += '\n' + mat_string
+        else:
+            comp_string += mat_string
 
-    return comp_string
+    return comp_string[0:-2]
 
-def plot_radial_build(build, Title = "Radial Build", colors = None, height = 20,
-                      max_thickness = None, size = (8,4), unit = 'cm'):
+def plot_radial_build(build, Title = "Radial Build", colors = None, 
+                      max_characters = 35, max_thickness = None, size = (8,4), 
+                      unit = 'cm'):
     """
     Creates a radial build plot, with layers scaled between a minimum and
         maximum pixel width to preserve readability
@@ -37,13 +43,18 @@ def plot_radial_build(build, Title = "Radial Build", colors = None, height = 20,
         title (string): title for plot and filename to save to
         colors (list of str): list of matplotlib color strings. 
             If specific colors are desired for each layer they can be added here
-        height (float): height to make the rectangles
+        max_characters (float): maximum length of a line before wrapping the 
+            text
         max_thickness (float): maximum thickness of layer to display, useful
             for reducing the total size of the figure.
         size (iter of float): figure size, inches. (width, height)
         unit (str): Unit of thickness values
     """
-    
+
+    char_to_height = 1.15
+    min_line_height = 8
+    height = char_to_height*max_characters
+
     if colors is None: 
         colors = list(matplotlib.colors.XKCD_COLORS.values())[0:len(build)]
 
@@ -57,7 +68,8 @@ def plot_radial_build(build, Title = "Radial Build", colors = None, height = 20,
     total_thickness = 0
     for layer, color in zip(build, colors):
 
-        comp_string = build_composition_string(build[layer]['composition'])
+        comp_string = build_composition_string(build[layer]['composition'],
+                                               max_characters)
         newlines = comp_string.count('\n')
 
         # adjust thicknesses
@@ -66,8 +78,8 @@ def plot_radial_build(build, Title = "Radial Build", colors = None, height = 20,
                 
                 build[layer]['thickness'] = max_thickness
 
-        if build[layer]['thickness'] < 16 + newlines*8:
-            thickness = 16 + newlines*8
+        if build[layer]['thickness'] < (2 + newlines)*min_line_height:
+            thickness = (2 + newlines)*min_line_height
         else:
             thickness = build[layer]['thickness']
 
@@ -76,7 +88,7 @@ def plot_radial_build(build, Title = "Radial Build", colors = None, height = 20,
 
         #put the text in
         centerx = (ll[0]+ll[0]+thickness)/2+1
-        centery = (height+1)/2
+        centery = (height)/2
         plt.text(centerx, centery, 
                  f'{layer}: {thickness} {unit} \n {comp_string}', 
                  rotation = "vertical", ha = "center", va = "center", wrap=True)
@@ -105,10 +117,10 @@ def main():
             "composition":{'WC':0.69, "He":0.26, "MF82H":0.05}},
         "VV":{"thickness":10, 'composition':{"SS316L":1.0}},
         "LTS":{"thickness":20, 
-            'composition':{"Water":0.3, "WC":0.33, "\nSS316L":0.3}},
+            'composition':{"Water":0.3, "WC":0.33, "SS316L":0.3}},
         "Winding Pack": {"thickness":63, 
                          'composition':{'Cu':0.43, 'JK2LB':0.29, 'He':0.14,
-                            '\nNb3Sn':0.06, 'Insulator':0.08}}
+                            'Nb3Sn':0.06, 'Insulator':0.08}}
     }
     
     plot_radial_build(build, Title="Example Radial Build", max_thickness=40)
