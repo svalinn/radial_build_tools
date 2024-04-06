@@ -55,6 +55,7 @@ def plot_radial_build(build, title, colors = None,
 
     char_to_height = 1.15
     min_line_height = 8
+    min_lines = 2
     height = char_to_height*max_characters
 
     if colors is None: 
@@ -76,14 +77,11 @@ def plot_radial_build(build, title, colors = None,
 
         # adjust thicknesses
         if max_thickness is not None:
-            if build[layer]['thickness'] > max_thickness:
-                
-                build[layer]['thickness'] = max_thickness
-
-        if build[layer]['thickness'] < (2 + newlines)*min_line_height:
-            thickness = (2 + newlines)*min_line_height
-        else:
-            thickness = build[layer]['thickness']
+            build[layer]['thickness'] = min(max_thickness,
+                                            build[layer]['thickness'])
+            
+        thickness = max(build[layer]['thickness'], 
+                        (min_lines + newlines)*min_line_height)
 
         ax.add_patch(Rectangle(ll,thickness, height, facecolor = color, 
                                edgecolor = "black"))
@@ -104,7 +102,6 @@ def plot_radial_build(build, title, colors = None,
     ax.set_axis_off()
     plt.title(title)
     plt.savefig(title.replace(' ',"") + '.png',dpi=200)
-
     plt.close()
 
 def parse_args():
