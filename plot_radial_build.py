@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
+import yaml
+import argparse
 
 def build_composition_string(composition, max_characters):
     """
@@ -26,7 +28,7 @@ def build_composition_string(composition, max_characters):
 
     return comp_string[0:-2]
 
-def plot_radial_build(build, Title = "Radial Build", colors = None, 
+def plot_radial_build(build, title, colors = None, 
                       max_characters = 35, max_thickness = None, size = (8,4), 
                       unit = 'cm'):
     """
@@ -100,32 +102,52 @@ def plot_radial_build(build, Title = "Radial Build", colors = None,
 
     ax.set_xlim(-1, total_thickness+1)
     ax.set_axis_off()
-    plt.title(Title)
-    plt.savefig(Title.replace(' ',"") + '.png',dpi=200)
+    plt.title(title)
+    plt.savefig(title.replace(' ',"") + '.png',dpi=200)
 
     plt.close()
 
+def parse_args():
+    """Parser for running as a script
+    """
+    parser = argparse.ArgumentParser(prog='plot_radial_build')
+
+    parser.add_argument(
+        'filename', help='YAML file defining radial build'
+    )
+
+    return parser.parse_args()
+
+def read_yaml(filename):
+    """Reads yaml file to extract title and build variables
+    """
+    with open(filename) as file:
+        data = yaml.safe_load(file)
+    
+    return data
 
 def main():
-    #example
-    build = {
-        "SOL":{'thickness':4, "composition":{"Vacuum":1}},
-        "FW":{'thickness':4, "composition":{"MF82H":0.34,"He":0.66}},
-        "Breeder":{"thickness":50, "composition":{"FNSFDCLL":1.0}},
-        "BW":{'thickness':4, "composition":{"MF82H":0.8,"He":0.8}},
-        "HTS":{"thickness":20,
-            "composition":{'WC':0.69, "He":0.26, "MF82H":0.05}},
-        "VV":{"thickness":10, 'composition':{"SS316L":1.0}},
-        "LTS":{"thickness":20, 
-            'composition':{"Water":0.3, "WC":0.33, "SS316L":0.3}},
-        "Winding Pack": {"thickness":63, 
-                         'composition':{'Cu':0.43, 'JK2LB':0.29, 'He':0.14,
-                            'Nb3Sn':0.06, 'Insulator':0.08}}
+
+    #default data for running from command line
+    data_default = {
+        'title':'Radial Build',
+        'colors':None,
+        'max_characters':35,
+        'max_thickness':None,
+        'size':(8,4),
+        'unit': 'cm'
     }
+
+    args = parse_args()
+    data = read_yaml(args.filename)
+
+    data_dict = data_default.copy()
+    data_dict.update(data)
     
-    plot_radial_build(build, Title="Example Radial Build", max_thickness=40)
-
-
+    plot_radial_build(data_dict['build'], data_dict['title'], 
+                      data_dict['colors'], data_dict['max_characters'],
+                      data_dict['max_thickness'], data_dict['size'],
+                      data_dict['unit'])
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,44 @@
+title: Example Radial Build
+build:
+  SOL:
+    thickness: 4
+    composition:
+      Vacuum: 1
+  FW:
+    thickness: 4
+    composition:
+      MF82H: 0.34
+      He: 0.66
+  Breeder:
+    thickness: 50
+    composition:
+      FNSFDCLL: 1.0
+  BW:
+    thickness: 4
+    composition:
+      MF82H: 0.8
+      He: 0.2
+  HTS:
+    thickness: 20
+    composition:
+      WC: 0.69
+      He: 0.26
+      MF82H: 0.05
+  VV:
+    thickness: 10
+    composition:
+      SS316L: 1.0
+  LTS:
+    thickness: 20
+    composition:
+      Water: 0.3
+      WC: 0.33
+      SS316L: 0.3
+  Winding Pack:
+    thickness: 63
+    composition:
+      Cu: 0.43
+      JK2LB: 0.29
+      He: 0.14
+      Nb3Sn: 0.06
+      Insulator: 0.08
