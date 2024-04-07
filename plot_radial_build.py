@@ -19,7 +19,7 @@ def build_composition_string(composition, max_characters):
     for material, fraction in composition.items():
         
         mat_string = f'{material}: {round(fraction*100,3)}%, '
-        line_len =len(comp_string+mat_string)-(comp_string+mat_string).find('\n')
+        line_len =len(comp_string+mat_string)-(comp_string+mat_string).rfind('\n')
 
         if line_len > max_characters:
             comp_string += '\n' + mat_string
