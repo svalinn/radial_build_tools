@@ -19,7 +19,7 @@ def build_composition_string(composition, max_characters):
     for material, fraction in composition.items():
         
         mat_string = f'{material}: {round(fraction*100,3)}%, '
-        line_len =len(comp_string)-(comp_string+mat_string).rfind('\n')
+        line_len =len(comp_string+mat_string)-(comp_string+mat_string).find('\n')
 
         if line_len > max_characters:
             comp_string += '\n' + mat_string
@@ -70,17 +70,16 @@ def plot_radial_build(build, title, colors = None,
 
     total_thickness = 0
     for (name, layer), color in zip(build.items(), colors):
-
+    
         comp_string = build_composition_string(layer['composition'],
                                                max_characters)
 
         newlines = comp_string.count('\n')
 
         min_thickness = (min_lines + newlines) * min_line_height
-        
-        # adjust thicknesses
-        thickness = min(max(layer['thickness'], min_thickness), max_thickness)
 
+        thickness = min(max(layer['thickness'], min_thickness), max_thickness)
+            
         ax.add_patch(Rectangle(ll,thickness, height, facecolor = color, 
                                edgecolor = "black"))
 
