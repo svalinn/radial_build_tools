@@ -91,7 +91,7 @@ def plot_radial_build(build, title, colors = None,
                  rotation = "vertical", ha = "center", va = "center", wrap=True)
 
         #update lower left corner
-        ll[0] = ll[0]+float(thickness)
+        ll[0] += float(thickness)
 
         total_thickness += thickness
 
