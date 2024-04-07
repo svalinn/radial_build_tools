@@ -84,7 +84,7 @@ def plot_radial_build(build, title, colors = None,
                                edgecolor = "black"))
 
         #put the text in
-        centerx = (ll[0]+ll[0]+thickness)/2+1
+        centerx = ll[0] + thickness/2 + 1
         centery = (height)/2
         plt.text(centerx, centery, 
                  f'{name}: {thickness} {unit}\n{comp_string}', 
