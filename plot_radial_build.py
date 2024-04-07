@@ -29,7 +29,7 @@ def build_composition_string(composition, max_characters):
     return comp_string[0:-2]
 
 def plot_radial_build(build, title, colors = None, 
-                      max_characters = 35, max_thickness = None, size = (8,4), 
+                      max_characters = 35, max_thickness = 1e6, size = (8,4), 
                       unit = 'cm'):
     """
     Creates a radial build plot, with layers scaled between a minimum and
@@ -69,19 +69,17 @@ def plot_radial_build(build, title, colors = None,
     ax.set_ylim(0,height+1)
 
     total_thickness = 0
-    for layer, color in zip(build, colors):
+    for (name, layer), color in zip(build.items(), colors):
 
-        comp_string = build_composition_string(build[layer]['composition'],
+        comp_string = build_composition_string(layer['composition'],
                                                max_characters)
+
         newlines = comp_string.count('\n')
 
+        min_thickness = (min_lines + newlines) * min_line_height
+        
         # adjust thicknesses
-        if max_thickness is not None:
-            build[layer]['thickness'] = min(max_thickness,
-                                            build[layer]['thickness'])
-            
-        thickness = max(build[layer]['thickness'], 
-                        (min_lines + newlines)*min_line_height)
+        thickness = min(max(layer['thickness'], min_thickness), max_thickness)
 
         ax.add_patch(Rectangle(ll,thickness, height, facecolor = color, 
                                edgecolor = "black"))
@@ -90,7 +88,7 @@ def plot_radial_build(build, title, colors = None,
         centerx = (ll[0]+ll[0]+thickness)/2+1
         centery = (height)/2
         plt.text(centerx, centery, 
-                 f'{layer}: {thickness} {unit} \n {comp_string}', 
+                 f'{name}: {thickness} {unit}\n{comp_string}', 
                  rotation = "vertical", ha = "center", va = "center", wrap=True)
 
         #update lower left corner
@@ -130,7 +128,7 @@ def main():
         'title':'Radial Build',
         'colors':None,
         'max_characters':35,
-        'max_thickness':None,
+        'max_thickness':1e6,
         'size':(8,4),
         'unit': 'cm'
     }
