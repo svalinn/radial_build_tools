@@ -73,6 +73,8 @@ def plot_radial_build(build, title, colors = None,
     
         comp_string = build_composition_string(layer['composition'],
                                                max_characters)
+        
+        thickness_str = layer['thickness']
 
         newlines = comp_string.count('\n')
 
@@ -87,7 +89,7 @@ def plot_radial_build(build, title, colors = None,
         centerx = ll[0] + thickness/2 + 1
         centery = height/2
         plt.text(centerx, centery, 
-                 f'{name}: {thickness} {unit}\n{comp_string}', 
+                 f'{name}: {thickness_str} {unit}\n{comp_string}', 
                  rotation = "vertical", ha = "center", va = "center", wrap=True)
 
         #update lower left corner
