@@ -63,7 +63,7 @@ def write_yaml(build, title, colors, max_characters, max_thickness, size, unit):
     filename = title.replace(' ',"") + '.yml'
 
     with open(filename, 'w') as file:
-        yaml.dump(data_dict, file, default_flow_style=False)
+        yaml.safe_dump(data_dict, file, default_flow_style=False)
 
     
 

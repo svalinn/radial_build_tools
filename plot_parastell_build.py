@@ -53,7 +53,7 @@ def plot_parastell_build(build, phi, theta, title, colors=None, max_characters=3
     plotter_build = {}
     #build the dictionary for plotting
     for layer_name, layer in radial_build.items():
-        thickness = layer['thickness_matrix'][phi_index, theta_index][0]
+        thickness = float(layer['thickness_matrix'][phi_index, theta_index][0])
         material = layer['h5m_tag']
         plotter_build[layer_name] = {"thickness": thickness,
                                      "composition":{material: 1}
