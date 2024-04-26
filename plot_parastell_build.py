@@ -58,7 +58,6 @@ def plot_parastell_build(build, phi, theta, title, colors=None, max_characters=3
         plotter_build[layer_name] = {"thickness": thickness,
                                      "composition":{material: 1}
                                      }
-    print(plotter_build)
     plot_radial_build.plot_radial_build(plotter_build, title, colors,
                                         max_characters, max_thickness, size,
                                         unit)

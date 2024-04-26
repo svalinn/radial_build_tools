@@ -4,6 +4,34 @@ import matplotlib.colors
 import yaml
 import argparse
 
+def wrap_text(text, max_characters):
+    """
+    loop thru text, if line length is too long, go back and replace the 
+    previous space with a linebreak
+
+    Arguments: 
+        text (str): text to wrap
+        max_characters (int): line length limit
+
+    returns:
+        text (str): wrapped text
+    """
+
+    character_counter = 0
+    for index, character in enumerate(text):
+        
+        character_counter += 1
+        if character == ' ':
+            space_index = index
+        elif character == '\n':
+            character_counter = 0
+
+        if character_counter > max_characters:
+            text = text[:space_index]+'\n'+text[space_index+1:]
+            character_counter = 0
+
+    return text
+
 def build_composition_string(composition, max_characters):
     """
     Assembles string from composition dict for use in radial build plot
@@ -19,14 +47,11 @@ def build_composition_string(composition, max_characters):
     for material, fraction in composition.items():
         
         mat_string = f'{material}: {round(fraction*100,3)}%, '
-        line_len =len(comp_string+mat_string)-(comp_string+mat_string).rfind('\n')
+        comp_string += mat_string
+        
+    comp_string = wrap_text(comp_string, max_characters)
 
-        if line_len > max_characters:
-            comp_string += '\n' + mat_string
-        else:
-            comp_string += mat_string
-
-    return comp_string[0:-2]
+    return comp_string[0:-2]+'\n'
 
 def write_yaml(build, title, colors, max_characters, max_thickness, size, unit):
     """
@@ -34,12 +59,7 @@ def write_yaml(build, title, colors, max_characters, max_thickness, size, unit):
     title.yml
 
     Arguments:
-        build (dict): {"layer name": {"thickness": (float),
-                                      "composition": {
-                                        "material name": fraction (float)
-                                }
-                            }
-                        }
+        build (dict): build dict used in plot_radial_build
         title (string): title for plot and filename to save to
         colors (list of str): list of matplotlib color strings. 
             If specific colors are desired for each layer they can be added here
@@ -75,10 +95,11 @@ def plot_radial_build(build, title, colors = None,
         maximum pixel width to preserve readability
     
     Arguments:
-        build (dict): {"layer name": {"thickness": (float),
-                                      "composition": {
-                                        "material name": fraction (float)
-                                }
+        build (dict): {"layer name": {"thickness": (float) optional,
+                                    "composition": (dict) optional {
+                                    "material name": fraction (float)
+                                    }
+                                    "description": (str) optional
                             }
                         }
         title (string): title for plot and filename to save to
@@ -109,13 +130,30 @@ def plot_radial_build(build, title, colors = None,
 
     total_thickness = 0
     for (name, layer), color in zip(build.items(), colors):
-    
-        comp_string = build_composition_string(layer['composition'],
-                                               max_characters)
         
-        thickness_str = layer['thickness']
+        if 'thickness' not in layer:
+            layer['thickness'] = min_line_height
+            thickness_str = ''
+        else:
+            thickness_str = f': {layer['thickness']} {unit}'
 
-        newlines = comp_string.count('\n')
+        if 'composition' not in layer:
+            comp_string = ''
+        else:
+            comp_string = build_composition_string(layer['composition'],
+                                               max_characters)
+            
+        if 'description' not in layer:
+            description_str = ''
+        else:
+            description_str = wrap_text(f'{layer['description']}', max_characters)
+        
+        text = f'{name}{thickness_str}\n{comp_string}{description_str}'
+        text = wrap_text(text, max_characters)
+        if text[-1] == '\n':
+            text = text[0:-1]
+
+        newlines = text.count('\n')
 
         min_thickness = (min_lines + newlines) * min_line_height
 
@@ -127,11 +165,10 @@ def plot_radial_build(build, title, colors = None,
         #put the text in
         centerx = ll[0] + thickness/2 + 1
         centery = height/2
-        plt.text(centerx, centery, 
-                 f'{name}: {thickness_str} {unit}\n{comp_string}', 
-                 rotation = "vertical", ha = "center", va = "center", wrap=True)
+                 
+        plt.text(centerx, centery, text, rotation = "vertical", ha = "center",
+                 va = "center")
 
-        #update lower left corner
         ll[0] += float(thickness)
 
         total_thickness += thickness
