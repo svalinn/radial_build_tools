@@ -89,7 +89,7 @@ def write_yaml(build, title, colors, max_characters, max_thickness, size, unit):
 
 def plot_radial_build(build, title, colors = None, 
                       max_characters = 35, max_thickness = 1e6, size = (8,4), 
-                      unit = 'cm'):
+                      unit = 'cm', write_yml=True):
     """
     Creates a radial build plot, with layers scaled between a minimum and
         maximum pixel width to preserve readability
@@ -179,7 +179,9 @@ def plot_radial_build(build, title, colors = None,
     plt.savefig(title.replace(' ',"") + '.png',dpi=200)
     plt.close()
 
-    write_yaml(build, title, colors, max_characters, max_thickness, size, unit)
+    if write_yaml:
+        write_yaml(build, title, colors, max_characters, max_thickness, size, 
+                   unit)
 
 def parse_args():
     """Parser for running as a script
