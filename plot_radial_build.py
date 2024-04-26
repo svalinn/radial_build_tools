@@ -28,6 +28,45 @@ def build_composition_string(composition, max_characters):
 
     return comp_string[0:-2]
 
+def write_yaml(build, title, colors, max_characters, max_thickness, size, unit):
+    """
+    Writes yml file defining radial build plot generated. File will be called
+    title.yml
+
+    Arguments:
+        build (dict): {"layer name": {"thickness": (float),
+                                      "composition": {
+                                        "material name": fraction (float)
+                                }
+                            }
+                        }
+        title (string): title for plot and filename to save to
+        colors (list of str): list of matplotlib color strings. 
+            If specific colors are desired for each layer they can be added here
+        max_characters (float): maximum length of a line before wrapping the 
+            text
+        max_thickness (float): maximum thickness of layer to display, useful
+            for reducing the total size of the figure.
+        size (iter of float): figure size, inches. (width, height)
+        unit (str): Unit of thickness values
+    """
+    
+    data_dict = {}
+    data_dict['build'] = build
+    data_dict['title'] = title
+    data_dict['colors'] = colors
+    data_dict['max_characters'] = max_characters
+    data_dict['max_thickness'] = max_thickness
+    data_dict['size'] = size
+    data_dict['unit'] = unit
+
+    filename = title.replace(' ',"") + '.yml'
+
+    with open(filename, 'w') as file:
+        yaml.dump(data_dict, file, default_flow_style=False)
+
+    
+
 def plot_radial_build(build, title, colors = None, 
                       max_characters = 35, max_thickness = 1e6, size = (8,4), 
                       unit = 'cm'):
@@ -102,6 +141,8 @@ def plot_radial_build(build, title, colors = None,
     plt.title(title)
     plt.savefig(title.replace(' ',"") + '.png',dpi=200)
     plt.close()
+
+    write_yaml(build, title, colors, max_characters, max_thickness, size, unit)
 
 def parse_args():
     """Parser for running as a script
