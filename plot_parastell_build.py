@@ -2,8 +2,9 @@ import numpy as np
 import plot_radial_build
 
 
-def plot_parastell_build(build, phi, theta, title, colors=None, max_characters=35,
-                         max_thickness=1e6, size=(8, 4), unit='cm'):
+def plot_parastell_build(build, phi, theta, title, colors=None,
+                         max_characters=35, max_thickness=1e6, size=(8, 4),
+                         unit='cm', write_yml = True):
     """
     Use the plot_radial_build script to generate a png plot and yml definition
     from a parastell build dict.
