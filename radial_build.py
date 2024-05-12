@@ -255,7 +255,7 @@ class radial_build(object):
                 print(f'Make sure to add the {e} key to each layer ' +
                       'along with an openmc material value or None for an ' +
                       'empty cell')
-                return None
+                raise
                 
         # make a bounding surface
         cell_list = list(cells.values())
