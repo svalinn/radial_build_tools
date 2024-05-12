@@ -250,9 +250,10 @@ class radial_build(object):
                                         fill=layer_def['material'])
                 materials.append(layer_def['material'])
             except KeyError as e:
-                print('Make sure to add the "material" key to each layer \
-                      along with an openmc material value or "void" for an \
-                      empty cell', str(e))
+                print(f'Make sure to add the {e} key to each layer ' +
+                      'along with an openmc material value or None for an ' +
+                      'empty cell')
+                return None
                 
         # make a bounding surface
         cell_list = list(cells.values())
