@@ -4,16 +4,19 @@ import matplotlib.colors
 import yaml
 import argparse
 import numpy as np
+import openmc
 
 class radial_build(object):
 
     """
-    A representation of a radial build for plotting
+    An object that uses a radial build definition create OpenMC geometry and
+        plots for visualization.
 
     Parameters
         `build (dict): {"layer name": {"thickness": (float),
                                 "composition": {
-                                "material name": fraction (float)
+                                "material name": fraction (float),
+                                "material": openmc material
                         }
                     }
         `        }
@@ -185,6 +188,84 @@ class radial_build(object):
         plt.title(self.title)
         plt.savefig(self.title.replace(' ',"") + '.png',dpi=200)
         plt.close()
+
+    def get_toroidal_model(self, a, b, c):
+        """
+        Return toroidal model built using the build definition.
+
+        Arguments:
+            a (float): major radius of torus in cm (around z axis)
+            b (float): minor radius (perpendicular to z) radial build offsets
+                from here
+            c (float): minor radius (parallel to z) radial build offsets from
+                here
+
+        Returns:
+            geometry (openmc geometry): toroidal geometry around the z axis 
+                built using the build definition.
+            cells (dict): dict mapping layer names to openmc cell instances in
+                the geometry object returned by this function.
+        """
+        # build surfaces
+        surfaces = {}
+
+        surfaces['plasma_surface'] = openmc.ZTorus(a=a, b=b, c=c)
+
+        for surface, surface_dict in self.build.items():
+            b += surface_dict['thickness']
+            c += surface_dict['thickness']
+            surfaces[surface] = openmc.ZTorus(a=a, b=b, c=c)
+
+        # build regions
+        regions = {}
+
+        surf_list = list(surfaces.keys())
+
+        for i, surf in enumerate(surf_list):
+            if i == 0:
+                regions['plasma'] = -surfaces['plasma_surface']
+            else:
+                regions[surf] = -surfaces[surf] & +surfaces[surf_list[i-1]]
+
+        # build cells
+        cells = {}
+
+        cells['plasma_cell'] = openmc.Cell(region=regions['plasma'],
+                                        name='plasma_cell')
+
+        for layer, layer_def in self.build.items():
+            if layer_def['material'] is None:
+                cells[layer] = openmc.Cell(region=regions[layer],
+                                        name=layer)
+            else:
+                cells[layer] = openmc.Cell(region=regions[layer],
+                                        name=layer,
+                                        fill=layer_def['material'])
+                
+        # make a bounding surface
+        cell_list = list(cells.values())
+
+        geometry = openmc.Geometry(cell_list)
+
+        bounding_box = geometry.bounding_box
+
+        vac_surf = openmc.Sphere(
+            r=np.sum(np.multiply((bounding_box[1]
+                                - bounding_box[0]),
+                                (bounding_box[1]
+                                - bounding_box[0])))**0.5+100,
+            boundary_type='vacuum')
+
+        vac_region = -vac_surf & +surfaces[surf_list[-1]]
+        vac_cell = openmc.Cell(region=vac_region,
+                            name='vac_cell')
+
+        cell_list.append(vac_cell)
+        cells['vac_cell'] = vac_cell
+
+        geometry = openmc.Geometry(cell_list)
+
+        return(geometry, cells)
 
     @classmethod
     def from_parastell_build(cls, parastell_build_dict, title, phi, theta,
