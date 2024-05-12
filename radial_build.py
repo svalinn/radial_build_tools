@@ -212,8 +212,8 @@ class radial_build(object):
                 here
 
         Returns:
-            geometry (openmc geometry): toroidal geometry around the z axis 
-                built using the build definition.
+            model (openmc model): Model containing materials and geometry
+                from the build dict.
             cells (dict): dict mapping layer names to openmc cell instances in
                 the model object returned by this function.
         """
