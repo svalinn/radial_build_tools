@@ -13,15 +13,17 @@ class radial_build(object):
         plots for visualization.
 
     Parameters
-        build (dict): {"layer name": {"thickness": (float),
-                                "composition": {
-                                "material name": fraction (float),
-                                "material": openmc material
-                        }
+        build (dict): {"layer name": {
+                            "thickness": (float),
+                            "composition": {
+                                "material name": fraction (float)
+                                },
+                            "material": OpenMC material
                     }
                 }
             The dict corresponding to each "layer_name" key may be empty,
-            or have any combination of entries.
+            or have any combination of entries. If it is desired to get an
+            OpenMC model, then the "material" key-value pair is required.
     """
 
     def __init__(
