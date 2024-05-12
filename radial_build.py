@@ -9,8 +9,8 @@ import openmc
 class radial_build(object):
 
     """
-    An object that uses a radial build definition create OpenMC geometry and
-        plots for visualization.
+    An object that uses a radial build definition to do useful things,
+    like making plots and OpenMC geometry.
 
     Parameters
         build (dict): {"layer name": {
