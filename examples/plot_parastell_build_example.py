@@ -1,5 +1,5 @@
 import numpy as np
-import plot_radial_build
+from radial_build import radial_build
 
 num_phi = 80
 num_theta = 90
@@ -72,12 +72,12 @@ build = {
     }
 }
 
-radial_build = plot_radial_build.radial_build.from_parastell_build(
-    build, "Example Parastell Build", phi_list[-1], theta_list[-1])
+rb = radial_build.from_parastell_build(
+    build, phi_list[-1], theta_list[-1])
 
 
 # create the radial build plot png
-radial_build.plot_radial_build()
+rb.plot_radial_build(title='Example Parastell Build')
 
 # save the plot configuration as a yml file
-radial_build.write_yml()
+rb.write_yml()

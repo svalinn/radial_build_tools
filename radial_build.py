@@ -13,44 +13,28 @@ class radial_build(object):
         plots for visualization.
 
     Parameters
-        `build (dict): {"layer name": {"thickness": (float),
+        build (dict): {"layer name": {"thickness": (float),
                                 "composition": {
                                 "material name": fraction (float),
                                 "material": openmc material
                         }
                     }
-        `        }
-        title (string): title for plot and filename to save to
-        colors (list of str): list of matplotlib color strings. 
-            If specific colors are desired for each layer they can be added here
-        max_characters (float): maximum length of a line before wrapping the 
-            text
-        max_thickness (float): maximum thickness of layer to display, useful
-            for reducing the total size of the figure.
-        size (iter of float): figure size, inches. (width, height)
-        unit (str): Unit of thickness values
+                }
+            The dict corresponding to each "layer_name" key may be empty,
+            or have any combination of entries.
     """
 
     def __init__(
             self,
-            build,
-            title,
-            colors=None,
-            max_characters = 35,
-            max_thickness = 1e6,
-            size = (8,4),
-            unit = 'cm'
+            build
     ):
         self.build = build
-        self.title = title
-        if colors == None:
-            self.colors = list(matplotlib.colors.XKCD_COLORS.values())[0:len(build)]
-        else:
-            self.colors = colors
-        self.max_characters = max_characters
-        self.max_thickness = max_thickness
-        self.size = size
-        self.unit = unit
+        self.title = None,
+        self.colors = None,
+        self.max_characters = None,
+        self.max_thickness = None,
+        self.size = None,
+        self.unit = None
 
     def wrap_text(self, text):
         """
@@ -102,8 +86,8 @@ class radial_build(object):
     
     def write_yml(self):
         """
-        Writes yml file defining radial build object. File will be called
-        self.title.yml
+        Writes yml file defining radial build plot. File will be called
+        title.yml
         """
         
         data_dict = {}
@@ -118,18 +102,42 @@ class radial_build(object):
         filename = self.title.replace(' ',"") + '.yml'
 
         with open(filename, 'w') as file:
-            yaml.safe_dump(data_dict, file, default_flow_style=False)
+            yaml.safe_dump(data_dict, file, default_flow_style=False,
+                           sort_keys=False)
 
-    def plot_radial_build(self):
+    def plot_radial_build(self, title="radial_build", colors = None,
+                          max_characters=35, max_thickness = 1e6, size=(8,4),
+                          unit = 'cm'):
         """
         Creates a radial build plot, with layers scaled between a minimum and
             maximum pixel width to preserve readability
+        
+        Arguments:
+            title (string): title for plot and filename to save to
+            colors (list of str): list of matplotlib color strings. 
+                If specific colors are desired for each layer they can be added
+                here
+            max_characters (float): maximum length of a line before wrapping the 
+                text
+            max_thickness (float): maximum thickness of layer to display, useful
+                for reducing the total size of the figure.
+            size (iter of float): figure size, inches. (width, height)
+            unit (str): Unit of thickness values
         """
+        if colors is None:
+            colors = list(matplotlib.colors.XKCD_COLORS.values())[0:len(self.build)]
+
+        self.title = title
+        self.colors = colors
+        self.max_characters = max_characters
+        self.max_thickness = max_thickness
+        self.size = size
+        self.unit = unit
 
         char_to_height = 1.15
         min_line_height = 8
         min_lines = 2
-        height = char_to_height*self.max_characters
+        height = char_to_height*max_characters
 
         #initialize list for lower left corner of each layer rectangle
         ll = [0,0]
@@ -185,13 +193,14 @@ class radial_build(object):
 
         ax.set_xlim(-1, total_thickness+1)
         ax.set_axis_off()
-        plt.title(self.title)
-        plt.savefig(self.title.replace(' ',"") + '.png',dpi=200)
+        plt.title(title)
+        plt.savefig(title.replace(' ',"") + '.png',dpi=200)
         plt.close()
 
     def get_toroidal_model(self, a, b, c):
         """
-        Return toroidal model built using the build definition.
+        Return toroidal model built using the build definition, contains
+        geometry and material information
 
         Arguments:
             a (float): major radius of torus in cm (around z axis)
@@ -204,7 +213,7 @@ class radial_build(object):
             geometry (openmc geometry): toroidal geometry around the z axis 
                 built using the build definition.
             cells (dict): dict mapping layer names to openmc cell instances in
-                the geometry object returned by this function.
+                the model object returned by this function.
         """
         # build surfaces
         surfaces = {}
@@ -229,18 +238,21 @@ class radial_build(object):
 
         # build cells
         cells = {}
+        materials = []
 
         cells['plasma_cell'] = openmc.Cell(region=regions['plasma'],
                                         name='plasma_cell')
 
         for layer, layer_def in self.build.items():
-            if layer_def['material'] is None:
-                cells[layer] = openmc.Cell(region=regions[layer],
-                                        name=layer)
-            else:
+            try:
                 cells[layer] = openmc.Cell(region=regions[layer],
                                         name=layer,
                                         fill=layer_def['material'])
+                materials.append(layer_def['material'])
+            except KeyError as e:
+                print('Make sure to add the "material" key to each layer \
+                      along with an openmc material value or "void" for an \
+                      empty cell', str(e))
                 
         # make a bounding surface
         cell_list = list(cells.values())
@@ -265,12 +277,15 @@ class radial_build(object):
 
         geometry = openmc.Geometry(cell_list)
 
-        return(geometry, cells)
+        # materials for the model
+        materials = list(set(materials))
+        materials = [material for material in materials if material is not None]
+
+        model = openmc.Model(geometry=geometry, materials=materials)
+        return model, cells
 
     @classmethod
-    def from_parastell_build(cls, parastell_build_dict, title, phi, theta,
-                             colors = None, max_characters=35, max_thickness=1e6,
-                             size=(8,4), unit='cm'):
+    def from_parastell_build(cls, parastell_build_dict, phi, theta):
 
         # access the thickness values at given theta phi
         phi_list = parastell_build_dict['phi_list']
@@ -279,16 +294,15 @@ class radial_build(object):
 
         phi_index = np.where(phi_list == phi)[0]
         theta_index = np.where(theta_list == theta)[0]
-        plotter_build = {}
+        build = {}
         #build the dictionary for plotting
         for layer_name, layer in radial_build.items():
             thickness = float(layer['thickness_matrix'][phi_index, theta_index][0])
             material = layer['h5m_tag']
-            plotter_build[layer_name] = {"thickness": thickness,
+            build[layer_name] = {"thickness": thickness,
                                         "description":material}
             
-        radial_build = cls(plotter_build, title, colors, max_characters,
-                           max_thickness, size, unit)
+        radial_build = cls(build)
         
         return radial_build
     
@@ -329,12 +343,12 @@ def main():
     data_dict = data_default.copy()
     data_dict.update(data)
     
-    rb = radial_build(data_dict['build'], data_dict['title'], 
-                      data_dict['colors'], data_dict['max_characters'],
-                      data_dict['max_thickness'], data_dict['size'],
-                      data_dict['unit'])
+    rb = radial_build(data_dict['build'])
     
-    rb.plot_radial_build()
+    rb.plot_radial_build(title=data_dict['title'], colors=data_dict['colors'], 
+                         max_characters=data_dict['max_characters'],
+                         max_thickness=data_dict['max_thickness'], 
+                         size=data_dict['size'], unit=data_dict['unit'])
 
 if __name__ == "__main__":
     main()

@@ -1,84 +1,44 @@
-build:
-  BW:
-    composition:
-      HeT410P80: 0.2
-      MF82H: 0.8
-    thickness: 2
-  Coil Pack:
-    composition:
-      Cu: 0.1307
-      HTS TAPE: 0.0622
-      HeT410P80: 0.0288
-      SS316L: 0.7435
-      Solder: 0.0438
-    description: '[combines winding pack and coil case]'
-    thickness: 52.5
-  FW:
-    composition:
-      HeT410P80: 0.66
-      MF82H: 0.34
-    thickness: 3.8
-  FW_armor:
-    thickness: 0.2
-  HTS:
-    description: Composition and thickness vary
-    thickness: 8
-  LTS:
-    description: Composition and thickness vary
-    thickness: 8
-  Thermal Insulator (Gap):
-    composition:
-      Void: 1.0
-    thickness: 10
-  breeder:
-    description: Composition and thickness vary
-    thickness: 8
-  gap_1:
-    composition:
-      Void: 1.0
-    thickness: 8
-  gap_2:
-    composition:
-      Void: 1.0
-    thickness: 2
-  manifolds:
-    description: composition varies
-    thickness: 10
-  sol:
-    thickness: 8
-  vv_back_plate:
-    composition:
-      SS316L: 1.0
-    thickness: 2
-  vv_fill:
-    composition:
-      HeT410P80: 0.4
-      SS316L: 0.6
-    thickness: 6
-  vv_front_plate:
-    composition:
-      SS316L: 1.0
-    thickness: 2
-colors:
-- '#acc2d9'
-- '#56ae57'
-- '#b2996e'
-- '#a8ff04'
-- '#69d84f'
-- '#894585'
-- '#70b23f'
-- '#d4ffff'
-- '#65ab7c'
-- '#952e8f'
-- '#fcfc81'
-- '#a5a391'
-- '#388004'
-- '#4c9085'
-- '#5e9b8a'
-max_characters: 39
-max_thickness: 1000000.0
-size:
-- 10
-- 4
 title: Example Radial Build
-unit: cm
+build:
+  SOL:
+    thickness: 4
+    composition:
+      Vacuum: 1
+  FW:
+    thickness: 4
+    composition:
+      MF82H: 0.34
+      He: 0.66
+  Breeder:
+    thickness: 50
+    composition:
+      FNSFDCLL: 1.0
+  BW:
+    thickness: 4
+    composition:
+      MF82H: 0.8
+      He: 0.2
+  HTS:
+    thickness: 20
+    composition:
+      WC: 0.69
+      He: 0.26
+      MF82H: 0.05
+  VV:
+    thickness: 10
+    composition:
+      SS316L: 1.0
+  LTS:
+    thickness: 20
+    composition:
+      Water: 0.3
+      WC: 0.33
+      SS316L: 0.3
+  Winding Pack:
+    thickness: 63
+    composition:
+      Cu: 0.43
+      JK2LB: 0.29
+      He: 0.14
+      Nb3Sn: 0.06
+      Insulator: 0.08

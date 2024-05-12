@@ -6,7 +6,7 @@ Tools for building, manipulating and representing radial build for fusion power 
 See examples folders for demonstrations of tools
 
 ## plot_radial_build.py
-Main plotting functionality, can be called from command line via:
+Main plotting functionality can be called from command line via:
 
 `python plot_radial_build.py ExampleRadialBuild.yml`
 

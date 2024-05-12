@@ -1,4 +1,4 @@
-import plot_radial_build
+from radial_build import radial_build
 
 build_dict = {
     # here is a layer with no optional data incluede
@@ -47,12 +47,12 @@ build_dict = {
 
 # note that since this is quite a detailed radial build, the default figure
 # size was insufficient
-radial_build = plot_radial_build.radial_build(build_dict, 'Example Radial Build',
-                  max_characters=39, size=(10, 4))
+rb = radial_build(build_dict)
 
 # create the radial build plot png
-radial_build.plot_radial_build()
+rb.plot_radial_build('Example Radial Build',
+                  max_characters=39, size=(10, 4))
 
 # save the plot configuration as a yml file
-radial_build.write_yml()
+rb.write_yml()
 
