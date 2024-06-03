@@ -223,9 +223,10 @@ class radial_build(object):
         surfaces['plasma_surface'] = openmc.ZTorus(a=a, b=b, c=c)
 
         for surface, surface_dict in self.build.items():
-            b += surface_dict['thickness']
-            c += surface_dict['thickness']
-            surfaces[surface] = openmc.ZTorus(a=a, b=b, c=c)
+            if surface_dict['thickness'] != 0:
+                b += surface_dict['thickness']
+                c += surface_dict['thickness']
+                surfaces[surface] = openmc.ZTorus(a=a, b=b, c=c)
 
         # build regions
         regions = {}
@@ -246,16 +247,17 @@ class radial_build(object):
                                         name='plasma_cell')
 
         for layer, layer_def in self.build.items():
-            try:
-                cells[layer] = openmc.Cell(region=regions[layer],
-                                        name=layer,
-                                        fill=layer_def['material'])
-                materials.append(layer_def['material'])
-            except KeyError as e:
-                print(f'Make sure to add the {e} key to each layer ' +
-                      'along with an openmc material value or None for an ' +
-                      'empty cell')
-                raise
+            if layer_def['thickness'] != 0:    
+                try:
+                    cells[layer] = openmc.Cell(region=regions[layer],
+                                            name=layer,
+                                            fill=layer_def['material'])
+                    materials.append(layer_def['material'])
+                except KeyError as e:
+                    print(f'Make sure to add the {e} key to each layer ' +
+                        'along with an openmc material value or None for an ' +
+                        'empty cell')
+                    raise
                 
         # make a bounding surface
         cell_list = list(cells.values())
