@@ -150,48 +150,48 @@ class radial_build(object):
 
         total_thickness = 0
         for (name, layer), color in zip(self.build.items(), self.colors):
-            
-            if 'thickness' not in layer:
-                layer['thickness'] = min_line_height
-                thickness_str = ''
-            else:
-                thickness_str = f': {layer["thickness"]} {self.unit}'
+            if 'thickness' in layer and layer['thickness'] != 0:
+                if 'thickness' not in layer:
+                    layer['thickness'] = min_line_height
+                    thickness_str = ''
+                else:
+                    thickness_str = f': {layer["thickness"]} {self.unit}'
 
-            if 'composition' not in layer:
-                comp_string = ''
-            else:
-                comp_string = self.build_composition_string(layer['composition'])
-                
-            if 'description' not in layer:
-                description_str = ''
-            else:
-                description_str = self.wrap_text(f'{layer["description"]}')
-            
-            text = f'{name}{thickness_str}\n{comp_string}{description_str}'
-            text = self.wrap_text(text)
-            if text[-1] == '\n':
-                text = text[0:-1]
-
-            newlines = text.count('\n')
-
-            min_thickness = (min_lines + newlines) * min_line_height
-
-            thickness = min(max(layer['thickness'], min_thickness),
-                            self.max_thickness)
-                
-            ax.add_patch(Rectangle(ll,thickness, height, facecolor = color, 
-                                edgecolor = "black"))
-
-            #put the text in
-            centerx = ll[0] + thickness/2 + 1
-            centery = height/2
+                if 'composition' not in layer:
+                    comp_string = ''
+                else:
+                    comp_string = self.build_composition_string(layer['composition'])
                     
-            plt.text(centerx, centery, text, rotation = "vertical", 
-                     ha = "center", va = "center")
+                if 'description' not in layer:
+                    description_str = ''
+                else:
+                    description_str = self.wrap_text(f'{layer["description"]}')
+                
+                text = f'{name}{thickness_str}\n{comp_string}{description_str}'
+                text = self.wrap_text(text)
+                if text[-1] == '\n':
+                    text = text[0:-1]
 
-            ll[0] += float(thickness)
+                newlines = text.count('\n')
 
-            total_thickness += thickness
+                min_thickness = (min_lines + newlines) * min_line_height
+
+                thickness = min(max(layer['thickness'], min_thickness),
+                                self.max_thickness)
+                    
+                ax.add_patch(Rectangle(ll,thickness, height, facecolor = color, 
+                                    edgecolor = "black"))
+
+                #put the text in
+                centerx = ll[0] + thickness/2 + 1
+                centery = height/2
+                        
+                plt.text(centerx, centery, text, rotation = "vertical", 
+                        ha = "center", va = "center")
+
+                ll[0] += float(thickness)
+
+                total_thickness += thickness
 
         ax.set_xlim(-1, total_thickness+1)
         ax.set_axis_off()
