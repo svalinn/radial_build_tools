@@ -66,15 +66,8 @@ class radial_build(object):
         Writes yml file defining radial build plot. File will be called
         title.yml
         """
-
-        data_dict = {}
-        data_dict['build'] = self.build
-        data_dict['title'] = self.title
-        data_dict['colors'] = self.colors
-        data_dict['max_characters'] = self.max_characters
-        data_dict['max_thickness'] = self.max_thickness
-        data_dict['size'] = self.size
-        data_dict['unit'] = self.unit
+        
+        data_dict = self.__dict__
 
         filename = self.title.replace(' ', "") + '.yml'
 
