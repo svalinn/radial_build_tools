@@ -161,4 +161,6 @@ cython_debug/
 
 *.yml
 *.png
+*.xml
+*.pkl
 !ExampleRadialBuild.yml
