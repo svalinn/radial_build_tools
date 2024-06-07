@@ -51,7 +51,7 @@ rb = radial_build(build_dict)
 
 # create the radial build plot png
 rb.plot_radial_build('Example Radial Build',
-                  max_characters=39, size=(10, 4))
+                  max_characters=40, size=(10, 4.2))
 
 # save the plot configuration as a yml file
 rb.write_yml()
