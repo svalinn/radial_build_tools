@@ -26,7 +26,7 @@ class RadialBuildPlot(object):
                 title (string): title for plot and filename to save to
         colors (list of str): list of matplotlib color strings.
             If specific colors are desired for each layer they can be added
-            here
+            here.
         max_characters (float): maximum length of a line before wrapping the
             text
         max_thickness (float): maximum thickness of layer to display, useful
@@ -64,7 +64,7 @@ class RadialBuildPlot(object):
             composition (dict): "material name (str)":volume_fraction (float)
 
         Returns:
-            comp_string (string): formatted string with material definition
+            comp_string (string): formatted string with composition definition
         """
 
         comp_string = ""
@@ -102,8 +102,7 @@ class RadialBuildPlot(object):
             text (str): formatted text for layer
             visual_thickness (float): width of the rectangle for the layer
         """
-        min_line_height = 8
-        min_lines = 2
+        min_line_height = 9
 
         visual_thickness = layer.get("thickness", min_line_height)
         thickness_str = ""
@@ -130,7 +129,7 @@ class RadialBuildPlot(object):
 
         newlines = text.count("\n")
 
-        min_thickness = (min_lines + newlines) * min_line_height
+        min_thickness = (newlines + 1) * min_line_height
 
         visual_thickness = min(
             max(visual_thickness, min_thickness), self.max_thickness
@@ -370,6 +369,25 @@ class ToroidalModel(object):
         model = openmc.Model(geometry=self.geometry, materials=self.materials)
         return model, self.cell_dict
 
+    def get_radial_build_plot(
+        self,
+        title="radial_build",
+        colors=None,
+        max_characters=35,
+        max_thickness=1e6,
+        size=(8, 4),
+        unit="cm",
+    ):
+        return RadialBuildPlot(
+            self.build,
+            title=title,
+            colors=colors,
+            max_characters=max_characters,
+            max_thickness=max_thickness,
+            size=size,
+            unit=unit,
+        )
+
 
 def parse_args():
     """Parser for running as a script"""
@@ -406,16 +424,14 @@ def main():
     data_dict = data_default.copy()
     data_dict.update(data)
 
-    rb = radial_build(data_dict["build"])
-
-    rb.plot_radial_build(
+    RadialBuildPlot(
         title=data_dict["title"],
         colors=data_dict["colors"],
         max_characters=data_dict["max_characters"],
         max_thickness=data_dict["max_thickness"],
         size=data_dict["size"],
         unit=data_dict["unit"],
-    )
+    ).to_png()
 
 
 if __name__ == "__main__":

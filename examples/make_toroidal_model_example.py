@@ -35,3 +35,8 @@ build = {
 toroidal_model = ToroidalModel(build, 1000, 100, 100)
 model, cells = toroidal_model.get_openmc_model()
 model.export_to_model_xml()
+
+# make a radial build plot of the model
+toroidal_model.get_radial_build_plot(
+    title="Toroidal Model Example", size=(4, 3)
+).to_png()
