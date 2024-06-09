@@ -29,6 +29,7 @@ build = {
     "sol": {"thickness": 5, "material": None, "description": "Vacuum"},
     "FW": {"thickness": 4, "material": RAFM, "description": RAFM.name},
     "Breeder": {"thickness": 20, "material": PbLi, "description": PbLi.name},
+    "bogus layer": {"thickness":0, "description":'this layer will be skipped'},
     "shield": {"thickness": 20, "material": W, "description": W.name},
 }
 

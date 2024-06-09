@@ -159,6 +159,9 @@ class RadialBuildPlot(object):
         total_thickness = 0
         for (name, layer), color in zip(self.build.items(), self.colors):
 
+            if layer.get('thickness') == 0:
+                continue
+            
             layer_str, visual_thickness = self.get_layer_string(name, layer)
 
             ax.add_patch(
