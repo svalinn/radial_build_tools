@@ -159,9 +159,9 @@ class RadialBuildPlot(object):
         total_thickness = 0
         for (name, layer), color in zip(self.build.items(), self.colors):
 
-            if layer.get('thickness') == 0:
+            if layer.get("thickness") == 0:
                 continue
-            
+
             layer_str, visual_thickness = self.get_layer_string(name, layer)
 
             ax.add_patch(
@@ -344,8 +344,7 @@ class ToroidalModel(object):
                     (bounding_box[1] - bounding_box[0]),
                 )
             )
-            ** 0.5
-            + 100,
+            ** 0.5,
             boundary_type="vacuum",
         )
 
