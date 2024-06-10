@@ -270,10 +270,6 @@ class ToroidalModel(object):
         self.a = a
         self.b = b
         self.c = c
-        self.build_surfaces()
-        self.build_regions()
-        self.build_cells()
-        self.get_bounded_geometry()
 
     def build_surfaces(self):
         """
@@ -367,6 +363,15 @@ class ToroidalModel(object):
 
         self.geometry = openmc.Geometry(self.cell_list)
 
+    def build_openmc_model(self):
+        """
+        Builds openmc model using the build definition
+        """
+        self.build_surfaces()
+        self.build_regions()
+        self.build_cells()
+        self.get_bounded_geometry()
+
     def get_openmc_model(self):
         """
         Return toroidal model built using the build definition, contains
@@ -378,7 +383,7 @@ class ToroidalModel(object):
             cells (dict): dict mapping layer names to openmc cell instances in
                 the model object returned by this function.
         """
-
+        self.build_openmc_model()
         model = openmc.Model(geometry=self.geometry, materials=self.materials)
         return model, self.cell_dict
 
