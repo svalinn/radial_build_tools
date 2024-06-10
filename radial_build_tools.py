@@ -23,7 +23,7 @@ class RadialBuildPlot(object):
                 }
             The dict corresponding to each "layer_name" key may be empty,
             or have any combination of entries.
-                title (string): title for plot and filename to save to
+        title (string): title for plot and filename to save to
         colors (list of str): list of matplotlib color strings.
             If specific colors are desired for each layer they can be added
             here.
@@ -67,7 +67,7 @@ class RadialBuildPlot(object):
             comp_string (string): formatted string with composition definition
         """
 
-        comp_string = ""
+        """comp_string = ""
         for material, fraction in composition.items():
 
             mat_string = f"{material}: {round(fraction*100, 3)}%, "
@@ -76,7 +76,18 @@ class RadialBuildPlot(object):
             comp_string, width=self.max_characters, drop_whitespace=False
         )
 
-        return comp_string[0:-2] + "\n"
+        return comp_string[0:-2] + "\n
+        """
+        mat_strings = [
+            f"{mat}: {round(frac*100,3)}%" for mat, frac in composition.items()
+        ]
+
+        comp_string = (
+            textwrap.fill(", ".join(mat_strings), width=self.max_characters)
+            + "\n"
+        )
+
+        return comp_string
 
     def write_yml(self):
         """
@@ -380,6 +391,24 @@ class ToroidalModel(object):
         size=(8, 4),
         unit="cm",
     ):
+        """
+        Make a radial build plot object using the build dictionary of this model.
+
+        Arguments:
+            title (string): title for plot and filename to save to
+            colors (list of str): list of matplotlib color strings.
+                If specific colors are desired for each layer they can be added
+                here.
+            max_characters (float): maximum length of a line before wrapping the
+                text
+            max_thickness (float): maximum thickness of layer to display, useful
+                for reducing the total size of the figure.
+            size (iter of float): figure size, inches. (width, height)
+            unit (str): Unit of thickness values
+
+        Returns:
+            RadialBuildPlot (obj): radial build plot object.
+        """
         return RadialBuildPlot(
             self.build,
             title=title,
