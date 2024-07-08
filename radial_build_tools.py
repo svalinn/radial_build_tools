@@ -410,17 +410,6 @@ def read_yaml(filename):
 
 
 def main():
-
-    # default data for running from command line
-    data_default = {
-        "title": "Radial Build",
-        "colors": None,
-        "max_characters": 35,
-        "max_thickness": 1e6,
-        "size": (8, 4),
-        "unit": "cm",
-    }
-
     args = parse_args()
     data = read_yaml(args.filename)
 
