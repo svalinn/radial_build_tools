@@ -1,5 +1,5 @@
 import openmc
-from radial_build_tools import ToroidalModel
+from radial_build_tools import ToroidalModel, RadialBuildPlot
 
 # wistell d esque values
 a = 800
@@ -29,7 +29,10 @@ build = {
     "sol": {"thickness": 5, "material": None, "description": "Vacuum"},
     "FW": {"thickness": 4, "material": RAFM, "description": RAFM.name},
     "Breeder": {"thickness": 20, "material": PbLi, "description": PbLi.name},
-    "bogus layer": {"thickness":0, "description":'this layer will be skipped'},
+    "bogus layer": {
+        "thickness": 0,
+        "description": "this layer will be skipped",
+    },
     "shield": {"thickness": 20, "material": W, "description": W.name},
 }
 
@@ -38,6 +41,6 @@ model, cells = toroidal_model.get_openmc_model()
 model.export_to_model_xml()
 
 # make a radial build plot of the model
-toroidal_model.get_radial_build_plot(
-    title="Toroidal Model Example", size=(4, 3)
-).to_png()
+rbp = RadialBuildPlot(build, title="Toroidal Model Example", size=(4, 3))
+rbp.plot_radial_build()
+rbp.to_png()

@@ -47,6 +47,7 @@ class RadialBuildPlot(object):
     ):
         self.build = build
         self.title = title
+        self.colors = colors
         if colors is None:
             self.colors = list(matplotlib.colors.XKCD_COLORS.values())[
                 0 : len(self.build)
@@ -97,6 +98,8 @@ class RadialBuildPlot(object):
 
         data_dict = self.__dict__
 
+        del data_dict["figure"]
+
         filename = self.title.replace(" ", "") + ".yml"
 
         with open(filename, "w") as file:
@@ -114,10 +117,9 @@ class RadialBuildPlot(object):
             visual_thickness (float): width of the rectangle for the layer
         """
         min_line_height = 9
+        visual_thickness = min_line_height
 
-        visual_thickness = layer.get("thickness", min_line_height)
         thickness_str = ""
-
         if "thickness" in layer:
             thickness_str = f': {layer["thickness"]} {self.unit}'
             visual_thickness = layer["thickness"]
@@ -203,7 +205,7 @@ class RadialBuildPlot(object):
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
         plt.title(self.title)
-        return fig
+        self.figure = fig
 
     def to_png(self, filename=None):
         """
@@ -216,8 +218,7 @@ class RadialBuildPlot(object):
         if filename is None:
             filename = self.title.replace(" ", "")
 
-        fig = self.plot_radial_build()
-        fig.savefig(f"{filename}.png", dpi=200)
+        self.figure.savefig(f"{filename}.png", dpi=200)
 
     @classmethod
     def from_parastell_build(cls, parastell_build_dict, phi, theta):
@@ -267,27 +268,31 @@ class ToroidalModel(object):
 
     def __init__(self, build, a, b, c):
         self.build = build
-        self.a = a
-        self.b = b
-        self.c = c
+        self.major_rad = a
+        self.minor_rad_z = b
+        self.minor_rad_xy = c
 
     def build_surfaces(self):
         """
         Build the surfaces representing the radial build using OpenMC CSG.
         """
-        a = self.a
-        b = self.b
-        c = self.c
+        major_rad = self.major_rad
+        minor_rad_z = self.minor_rad_z
+        minor_rad_xy = self.minor_rad_xy
         # build surfaces
         surfaces = {}
 
-        surfaces["plasma_surface"] = openmc.ZTorus(a=a, b=b, c=c)
+        surfaces["plasma_surface"] = openmc.ZTorus(
+            a=major_rad, b=minor_rad_z, c=minor_rad_xy
+        )
 
         for surface, surface_dict in self.build.items():
             if surface_dict["thickness"] != 0:
-                b += surface_dict["thickness"]
-                c += surface_dict["thickness"]
-                surfaces[surface] = openmc.ZTorus(a=a, b=b, c=c)
+                minor_rad_z += surface_dict["thickness"]
+                minor_rad_xy += surface_dict["thickness"]
+                surfaces[surface] = openmc.ZTorus(
+                    a=major_rad, b=minor_rad_z, c=minor_rad_xy
+                )
 
         self.surfaces = surfaces
 
@@ -387,43 +392,6 @@ class ToroidalModel(object):
         model = openmc.Model(geometry=self.geometry, materials=self.materials)
         return model, self.cell_dict
 
-    def get_radial_build_plot(
-        self,
-        title="radial_build",
-        colors=None,
-        max_characters=35,
-        max_thickness=1e6,
-        size=(8, 4),
-        unit="cm",
-    ):
-        """
-        Make a radial build plot object using the build dictionary of this model.
-
-        Arguments:
-            title (string): title for plot and filename to save to
-            colors (list of str): list of matplotlib color strings.
-                If specific colors are desired for each layer they can be added
-                here.
-            max_characters (float): maximum length of a line before wrapping the
-                text
-            max_thickness (float): maximum thickness of layer to display, useful
-                for reducing the total size of the figure.
-            size (iter of float): figure size, inches. (width, height)
-            unit (str): Unit of thickness values
-
-        Returns:
-            RadialBuildPlot (obj): radial build plot object.
-        """
-        return RadialBuildPlot(
-            self.build,
-            title=title,
-            colors=colors,
-            max_characters=max_characters,
-            max_thickness=max_thickness,
-            size=size,
-            unit=unit,
-        )
-
 
 def parse_args():
     """Parser for running as a script"""
@@ -460,14 +428,17 @@ def main():
     data_dict = data_default.copy()
     data_dict.update(data)
 
-    RadialBuildPlot(
+    rbp = RadialBuildPlot(
+        build=data_dict["build"],
         title=data_dict["title"],
         colors=data_dict["colors"],
         max_characters=data_dict["max_characters"],
         max_thickness=data_dict["max_thickness"],
         size=data_dict["size"],
         unit=data_dict["unit"],
-    ).to_png()
+    )
+    rbp.plot_radial_build()
+    rbp.to_png()
 
 
 if __name__ == "__main__":

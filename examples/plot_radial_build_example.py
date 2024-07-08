@@ -40,4 +40,5 @@ build_dict = {
 rbp = RadialBuildPlot(
     build_dict, title="Example Radial Build", max_characters=40, size=(8, 4.2)
 )
+rbp.plot_radial_build()
 rbp.to_png()

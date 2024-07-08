@@ -58,6 +58,7 @@ rbp = RadialBuildPlot.from_parastell_build(build, phi_list[-1], theta_list[-1])
 
 # create the radial build plot png
 rbp.title = "Example Parastell Build"
+rbp.plot_radial_build()
 rbp.to_png()
 
 # save the plot configuration as a yml file
