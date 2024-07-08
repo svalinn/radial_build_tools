@@ -23,6 +23,7 @@ class RadialBuildPlot(object):
                 }
             The dict corresponding to each "layer_name" key may be empty,
             or have any combination of entries.
+    Optional attributes:
         title (string): title for plot and filename to save to
         colors (list of str): list of matplotlib color strings.
             If specific colors are desired for each layer they can be added
@@ -35,27 +36,25 @@ class RadialBuildPlot(object):
         unit (str): Unit of thickness values
     """
 
-    def __init__(
-        self,
-        build,
-        title="radial_build",
-        colors=None,
-        max_characters=35,
-        max_thickness=1e6,
-        size=(8, 4),
-        unit="cm",
-    ):
+    def __init__(self, build, **kwargs):
         self.build = build
-        self.title = title
-        self.colors = colors
-        if colors is None:
-            self.colors = list(matplotlib.colors.XKCD_COLORS.values())[
-                0 : len(self.build)
-            ]
-        self.max_characters = max_characters
-        self.max_thickness = max_thickness
-        self.size = size
-        self.unit = unit
+        self.title = "radial_build"
+        self.colors = list(matplotlib.colors.XKCD_COLORS.values())[
+            0 : len(self.build)
+        ]
+        self.max_characters = 35
+        self.max_thickness = 1e6
+        self.size = (8, 4)
+        self.unit = "cm"
+        for name in kwargs.keys() & (
+            "title",
+            "colors",
+            "max_characters",
+            "max_thickness",
+            "size",
+            "unit",
+        ):
+            self.__setattr__(name, kwargs[name])
 
     def build_composition_string(self, composition):
         """
@@ -425,18 +424,7 @@ def main():
     args = parse_args()
     data = read_yaml(args.filename)
 
-    data_dict = data_default.copy()
-    data_dict.update(data)
-
-    rbp = RadialBuildPlot(
-        build=data_dict["build"],
-        title=data_dict["title"],
-        colors=data_dict["colors"],
-        max_characters=data_dict["max_characters"],
-        max_thickness=data_dict["max_thickness"],
-        size=data_dict["size"],
-        unit=data_dict["unit"],
-    )
+    rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
 
