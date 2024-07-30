@@ -1,6 +1,5 @@
 import yaml
 import argparse
-from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
