@@ -283,11 +283,8 @@ class ToroidalModel(object):
         self.minor_rad_xy = minor_rad_xy
         if isinstance(materials, str):
             self.input_materials = openmc.Materials.from_xml(materials)
-            self.materials_path = materials
         else:
             self.input_materials = materials
-            self.materials_path = Path.cwd() / "input_materials.xml"
-            materials.export_to_xml(self.materials_path)
 
         self.assign_materials()
 
@@ -296,14 +293,14 @@ class ToroidalModel(object):
         Assign OpenMC material objects to each layer in the build dict
         """
         for layer_name, layer_data in self.build.items():
-            if "material" in layer_data:
+            if "material_name" in layer_data:
                 layer_data["material"] = self.get_material_by_name(
                     layer_data["material_name"]
                 )
             else:
                 layer_data["material"] = None
 
-    def get_material_by_name(self, material):
+    def get_material_by_name(self, material_name):
         """
         Search the materials object for a material with a matching name. Openmc
         allows duplicate names, and names are not required, be advised.
@@ -316,12 +313,12 @@ class ToroidalModel(object):
             mat (OpenMC material object): material object with matching name
         """
         for mat in self.input_materials:
-            if mat.name == material:
+            if mat.name == material_name:
                 return mat
         # if this returns none, openmc will just assign vacuum to any cell
         # using this material
         raise ValueError(
-            f"no material name {material} was found in the library"
+            f"no material name {material_name} was found in the library"
         )
 
     def build_surfaces(self):
