@@ -1,8 +1,9 @@
+import yaml
+import argparse
+from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
-import yaml
-import argparse
 import numpy as np
 import openmc
 import textwrap
@@ -257,19 +258,71 @@ class ToroidalModel(object):
                             "composition": {
                                 "material name": fraction (float)
                                 },
-                            "material": OpenMC material
+                            "material_name": (str) name of material in
+                                associated OpenMC material library. To have a
+                                layer with vacuum/void do not include the
+                                'material_name' key.
                     }
                 }
             The dict corresponding to each "layer_name" key may be empty,
             or have any combination of entries.
-
+        major_rad (float): major radius of the torus
+        minor_rad_z (float): minor radius of the plasma region parallel to the
+            z axis
+        minor_rad_xy (float): minor radius of the plasma region perpendicular
+            to the z axis
+        materials (str or OpenMC Materials object): path to the OpenMC materials
+            xml file for this model, or the corresponding Materials OpenMC
+            object
     """
 
-    def __init__(self, build, a, b, c):
+    def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
         self.build = build
-        self.major_rad = a
-        self.minor_rad_z = b
-        self.minor_rad_xy = c
+        self.major_rad = major_rad
+        self.minor_rad_z = minor_rad_z
+        self.minor_rad_xy = minor_rad_xy
+        if isinstance(materials, str):
+            self.input_materials = openmc.Materials.from_xml(materials)
+            self.materials_path = materials
+        else:
+            self.input_materials = materials
+            self.materials_path = Path.cwd() / "input_materials.xml"
+            materials.export_to_xml(self.materials_path)
+
+        self.assign_materials()
+
+    def assign_materials(self):
+        """
+        Assign OpenMC material objects to each layer in the build dict
+        """
+        for layer_name, layer_data in self.build.items():
+            if "material" in layer_data:
+                layer_data["material"] = self.get_material_by_name(
+                    layer_data["material_name"]
+                )
+            else:
+                layer_data["material"] = None
+
+    def get_material_by_name(self, material):
+        """
+        Search the materials object for a material with a matching name. Openmc
+        allows duplicate names, and names are not required, be advised.
+
+        Arguments:
+            materials (OpenMC Materials Object): material library to search
+            material (string): name of material to be returned
+
+        Returns:
+            mat (OpenMC material object): material object with matching name
+        """
+        for mat in self.input_materials:
+            if mat.name == material:
+                return mat
+        # if this returns none, openmc will just assign vacuum to any cell
+        # using this material
+        raise ValueError(
+            f"no material name {material} was found in the library"
+        )
 
     def build_surfaces(self):
         """
@@ -390,7 +443,7 @@ class ToroidalModel(object):
         self.build_openmc_model()
         model = openmc.Model(geometry=self.geometry, materials=self.materials)
         return model, self.cell_dict
-
+    
 
 def parse_args():
     """Parser for running as a script"""
