@@ -27,18 +27,18 @@ PbLi.set_density("g/cm3", 9.806)
 materials = openmc.Materials([RAFM, PbLi, W])
 
 build = {
-    "sol": {"thickness": 5, "material": None, "description": "Vacuum"},
-    "FW": {"thickness": 4, "material": RAFM, "description": RAFM.name},
-    "Breeder": {"thickness": 20, "material": PbLi, "description": PbLi.name},
+    "sol": {"thickness": 5, "description": "Vacuum"},
+    "FW": {"thickness": 4, "material_name": RAFM.name, "description": RAFM.name},
+    "Breeder": {"thickness": 20, "material_name": PbLi.name, "description": PbLi.name},
     "bogus layer": {
         "thickness": 0,
         "description": "this layer will be skipped due to zero thickness",
     },
-    "shield": {"thickness": 20, "material": W, "description": W.name},
+    "shield": {"thickness": 20, "material_name": W.name, "description": W.name},
 }
 
 toroidal_model = ToroidalModel(
-    build, major_radius, plasma_minor_z_radius, plasma_minor_xy_radius
+    build, major_radius, plasma_minor_z_radius, plasma_minor_xy_radius, materials
 )
 model, cells = toroidal_model.get_openmc_model()
 model.export_to_model_xml()
@@ -47,3 +47,4 @@ model.export_to_model_xml()
 rbp = RadialBuildPlot(build, title="Toroidal Model Example", size=(4, 3))
 rbp.plot_radial_build()
 rbp.to_png()
+
