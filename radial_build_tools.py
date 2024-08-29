@@ -6,6 +6,7 @@ import matplotlib.colors
 import numpy as np
 import openmc
 import textwrap
+import random
 
 
 class RadialBuildPlot(object):
@@ -39,9 +40,6 @@ class RadialBuildPlot(object):
     def __init__(self, build, **kwargs):
         self.build = build
         self.title = "radial_build"
-        self.colors = list(matplotlib.colors.XKCD_COLORS.values())[
-            0 : len(self.build)
-        ]
         self.max_characters = 35
         self.max_thickness = 1e6
         self.size = (8, 4)
@@ -56,6 +54,37 @@ class RadialBuildPlot(object):
         ):
             self.__setattr__(name, kwargs[name])
 
+        # Initialize colors for each layer
+        self.colors = self.assign_colors()
+
+    def assign_colors(self):
+        """
+        Assign colors to each layer. If a color is provided, use it.
+        If not, generate a random color that hasn't been used yet.
+        """
+        used_colors = set()
+        colors = []
+
+        for layer_name, layer in self.build.items():
+            if "color" in layer:
+                color = layer["color"]
+            else:
+                color = self.generate_unique_color(used_colors)
+                layer["color"] = color  # Assign the generated color to the layer
+
+            colors.append(color)
+            used_colors.add(color)
+
+        return colors
+
+    def generate_unique_color(self, used_colors):
+        """
+        Generate a random color that has not been used yet.
+        """
+        color_pool = list(matplotlib.colors.XKCD_COLORS.values())
+        available_colors = [color for color in color_pool if color not in used_colors]
+        return random.choice(available_colors)
+    
     def build_composition_string(self, composition):
         """
         Assembles string from composition dict for use in radial build plot

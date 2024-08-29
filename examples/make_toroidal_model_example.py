@@ -27,9 +27,9 @@ PbLi.set_density("g/cm3", 9.806)
 materials = openmc.Materials([RAFM, PbLi, W])
 
 build = {
-    "sol": {"thickness": 5, "description": "Vacuum"},
-    "FW": {"thickness": 4, "material_name": RAFM.name, "description": RAFM.name},
-    "Breeder": {"thickness": 20, "material_name": PbLi.name, "description": PbLi.name},
+    "sol": {"thickness": 5, "description": "Vacuum",},
+    "FW": {"thickness": 4, "material_name": RAFM.name, "description": RAFM.name,"color": "#e0218a",},
+    "Breeder": {"thickness": 20, "material_name": PbLi.name, "description": PbLi.name,},
     "bogus layer": {
         "thickness": 0,
         "description": "this layer will be skipped due to zero thickness",
