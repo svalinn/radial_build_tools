@@ -11,6 +11,7 @@ minor_radius_xy = 114
 scoring_layer_thickness = 0.5
 
 make_mat = Make_Material(mixed_mat)
+# openmc Materials object:
 materials = Make_All_Materials(make_mat)
 
 build_dict = {
