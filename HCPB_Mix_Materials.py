@@ -76,5 +76,5 @@ for mat_name, mat_input in mat_data.items():
             mat_lib, mat_input["vol_fracs"], mat_input["mixture_citation"]
         )
 
-# write fnsf material library
+# write HCPB material library
 mixmat_lib.write_json("mixedPureFusionMatsHCPB_libv1.json")
