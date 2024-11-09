@@ -54,7 +54,8 @@ class RadialBuildPlot(object):
         ):
             self.__setattr__(name, kwargs[name])
 
-        # Initialize colors for each layer
+        self.used_colors = set()
+        self.available_colors = set(matplotlib.colors.XKCD_COLORS.values())
         self.colors = self.assign_colors()
 
     def assign_colors(self):
@@ -62,28 +63,28 @@ class RadialBuildPlot(object):
         Assign colors to each layer. If a color is provided, use it.
         If not, generate a random color that hasn't been used yet.
         """
-        used_colors = set()
         colors = []
-
-        for layer_name, layer in self.build.items():
+        for layer in self.build.values():
             if "color" in layer:
                 color = layer["color"]
+                self.used_colors.add(color)
+                self.available_colors.discard(color)
             else:
-                color = self.generate_unique_color(used_colors)
-                layer["color"] = color  # Assign the generated color to the layer
+                color = self.generate_unique_color()
+                layer["color"] = color  
 
             colors.append(color)
-            used_colors.add(color)
 
         return colors
 
-    def generate_unique_color(self, used_colors):
+    def generate_unique_color(self):
         """
         Generate a random color that has not been used yet.
         """
-        color_pool = list(matplotlib.colors.XKCD_COLORS.values())
-        available_colors = [color for color in color_pool if color not in used_colors]
-        return random.choice(available_colors)
+        color = random.choice(list(self.available_colors))
+        self.available_colors.remove(color)  # Remove chosen color
+        self.used_colors.add(color)  # Add to used colors
+        return color
     
     def build_composition_string(self, composition):
         """
@@ -96,17 +97,6 @@ class RadialBuildPlot(object):
             comp_string (string): formatted string with composition definition
         """
 
-        """comp_string = ""
-        for material, fraction in composition.items():
-
-            mat_string = f"{material}: {round(fraction*100, 3)}%, "
-            comp_string += mat_string
-        comp_string = textwrap.fill(
-            comp_string, width=self.max_characters, drop_whitespace=False
-        )
-
-        return comp_string[0:-2] + "\n
-        """
         mat_strings = [
             f"{mat}: {round(frac*100,3)}%" for mat, frac in composition.items()
         ]
