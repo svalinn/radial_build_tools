@@ -65,13 +65,11 @@ class RadialBuildPlot(object):
         """
         colors = []
         for layer in self.build.values():
-            if "color" in layer:
-                color = layer["color"]
-                self.used_colors.add(color)
-                self.available_colors.discard(color)
-            else:
-                color = self.generate_unique_color()
-                layer["color"] = color  
+            if "color" not in layer:
+                layer["color"] = random.choice(list(self.available_colors))
+            color = layer["color"]
+            self.used_colors.add(color)
+            self.available_colors.discard(color)
 
             colors.append(color)
 
