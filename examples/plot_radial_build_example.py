@@ -1,7 +1,7 @@
 from radial_build_tools import RadialBuildPlot
 
 build_dict = {
-    # here is a layer with no optional data inclueded, if color isn't specified a random color will be chosen
+    # here is a layer with no optional data included, if color isn't specified a random color will be chosen
     "sol": {},
     # here is a layer where only thickness is included
     "FW_armor": {"thickness": 0.2},
