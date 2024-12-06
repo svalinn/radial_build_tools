@@ -14,7 +14,7 @@ def make_material(mixed_mat_data):
     '''
     mat_list = []
     for material, mat_property in mixed_mat_data.items():
-        mat_openmc = openmc.Material(name=f"{material}")
+        mat_openmc = openmc.Material(name=material)
         mat_list.append(mat_openmc)
         mat_openmc.set_density('g/cm3', mat_property.get("density"))
         comp_list = mat_property.get("comp")
