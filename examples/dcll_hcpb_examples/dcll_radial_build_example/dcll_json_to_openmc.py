@@ -2,14 +2,18 @@ import openmc
 import json
 
 def makematerial(material_json,path_to_cross_sections):
-    mat_list=[]
-    for material, property in material_json.items():
-        openmc_material=openmc.Material(name=f"{material}")
-        mat_list.append(openmc_material)
-        openmc_material.set_density('g/cm3', property.get('density'))
-        composition=property.get('comp')
-        for element, fraction in composition.items():
+    """
+    imports previously generated JSON file and creates OpenMC materials object
+
+    Returns: 
+        materials: OpenMC materials object 
+    """
+    materials=openmc.Materials()
+    for material_name, properties in material_json.items():
+        openmc_material=openmc.Material(name=f"{material_name}")
+        openmc_material.set_density('g/cm3', properties['density'])
+        for element, fraction in properties['comp'].items():
             openmc_material.add_nuclide(element,fraction)
-    materials=openmc.Materials(mat_list)
+        materials.append(openmc_material)
     materials.cross_sections=path_to_cross_sections
     return materials

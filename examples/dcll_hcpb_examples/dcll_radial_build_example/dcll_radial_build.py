@@ -13,6 +13,7 @@ with open('mixedMaterialsDCLL_libv1.json','r') as material_json:
 
 materials=makematerial(mixed_materials,'/filespace/l/lygre/cnergresearch/data/endfb-viii.0-hdf5/cross_sections.xml')
 
+
 build_dict = {
     "sol": {"thickness": 5, "composition": {"Void": 1.0}},
     "fw_armor": {"thickness": 0.2,
@@ -91,6 +92,7 @@ build_dict = {
         "scores": ["heating"],
     },
 }
+
 
 toroidal_model = ToroidalModel(
     build_dict, major_radius, minor_radius_z, minor_radius_xy, materials
