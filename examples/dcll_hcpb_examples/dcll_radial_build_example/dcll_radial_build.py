@@ -15,7 +15,9 @@ materials=makematerial(mixed_materials,'/filespace/l/lygre/cnergresearch/data/en
 
 
 build_dict = {
-    "sol": {"thickness": 5, "composition": {"Void": 1.0}},
+    "sol": {"thickness": 5, 
+        "composition": {"Void": 1.0}
+    },
     "fw_armor": {"thickness": 0.2,
         "scores": ["heating"],
     },
@@ -93,6 +95,10 @@ build_dict = {
     },
 }
 
+
+for layer_name, properties in build_dict.items():
+    if "composition" not in properties.keys():
+        properties["material_name"] = layer_name
 
 toroidal_model = ToroidalModel(
     build_dict, major_radius, minor_radius_z, minor_radius_xy, materials

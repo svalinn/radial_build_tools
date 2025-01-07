@@ -16,7 +16,7 @@ material_dict = {
         "composition": {"MF82H": 0.34, "HeNIST": 0.66},
         "citation": "ZhouEUDEMOHCPB_2023",
     },
-    "be_muliplier": {"composition": {"Be": 1.0}, "citation": "DavisFusEngDes_2018"},
+    "be_multiplier": {"composition": {"Be": 1.0}, "citation": "DavisFusEngDes_2018"},
     "breeder": {
         "composition": {
             "Pb157Li90": 0.737,
