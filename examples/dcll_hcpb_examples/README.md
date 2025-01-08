@@ -1,5 +1,5 @@
 ## Workflow for using `radial_build_tools` and `fusion-materials-db`
-This process uses the [`fusion-materials-db`](https://github.com/svalinn/fusion-material-db) to create a JSON file that defines the composition of materials used in a simulation, like an OpenMC or MCNP model. The examples are for OpenMC with the use of a function to create an OpenMC materials object from the JSON file. This is used with [`radial_build_tools`](https://github.com/svalinn/radial_build_tools) to generate a model for OpenMC (geometry and materials). The result is a "model.xml" file and a visual of the geometry, an example is shown below. 
+This process uses the [`fusion-materials-db`](https://github.com/svalinn/fusion-material-db) to create a JSON file that defines the composition of materials used in a simulation, like an OpenMC or MCNP model. The examples are for OpenMC with the use of a function to create an OpenMC materials object from the JSON file. This is used with [`radial_build_tools`](https://github.com/svalinn/radial_build_tools) to generate a model for OpenMC (geometry and materials). The result is a "model.xml" file and a visual of the geometry, an example is shown below.
 
 ![](ToroidalModelDCLL.png)
 
