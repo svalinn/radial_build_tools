@@ -107,6 +107,6 @@ model, cells = toroidal_model.get_openmc_model()
 model.export_to_model_xml()
 
 # make a radial build plot of the model
-rbp = RadialBuildPlot(build_dict, title="Toroidal Model DCLL", size=(4, 3))
+rbp = RadialBuildPlot(build_dict, title="Toroidal Model DCLL", size=(6, 3))
 rbp.plot_radial_build()
 rbp.to_png()

@@ -28,6 +28,7 @@ Steps
     ```
     "<part_name>": {"thickness": <thickness>,
         "scores": ["<score>"],
+        "material_name": "<material_name>",
     },
     ``` 
     5. If layer is void add `"composition": {"Void": 1.0}` to the dictionary
