@@ -20,7 +20,7 @@ material_comp = {
 'bw' : {"MF82H" : 0.8, "HeNIST" : 0.2},
 'manifold_front_plate' : {"EUROFER97": 1.0},
 'manifold' : {"HeT410P80": 1.00},
-'manifold_back_plate' : {"HeT410P80": 1.00},
+'manifold_back_plate' : {"EUROFER97": 1.00},
 'hts_front_plate' : {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
 'hts': {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
 'hts_back_plate' : {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
