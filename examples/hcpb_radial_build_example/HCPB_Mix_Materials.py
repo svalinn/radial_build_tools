@@ -15,8 +15,8 @@ mat_data = {}
 #Volume fractions of constituent materials
 material_comp = {
 'fw_armor' : {"W": 1.00},
- 'fw' : {"W": 0.1, "EUROFER97" : 0.9},
-'breeder' : {"Li4SiO4Li60.0":0.65, "Li2TiO3Li60.0":0.35}, #need to convert mol% to vol%
+'fw' : {"W": 0.1, "EUROFER97" : 0.9},
+'breeder' : {"Be12Ti": 0.8, "Li4SiO4Li60.0":0.14837, "Li2TiO3Li60.0":0.05163},
 'bw' : {"MF82H" : 0.8, "HeNIST" : 0.2},
 'manifold_front_plate' : {"EUROFER97": 1.0},
 'manifold' : {"HeT410P80": 1.00},
