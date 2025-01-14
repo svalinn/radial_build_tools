@@ -1,5 +1,7 @@
 import openmc
 import json
+import yaml
+import argparse
 import material_db_tools as mdbt
 
 '''
@@ -7,20 +9,20 @@ This script specifies the composition of each HCPB component and its correspondi
 mdbt.mix_by_volume is called to mix individual materials and generate a new .json file.
 '''
 
-with open('PureFusionMaterials_libv1.json', 'r') as pure_mat_json:
-    pure_mat = json.load(pure_mat_json)
-
-mat_data = {}
-
-#Volume fractions of constituent materials
-material_comp = {
+def mat_data(): 
+    '''    
+    Specfies volume fraction and corresponding citation for each radial component.
+    '''
+    #Volume fractions of constituent materials
+    material_comp = {
 'fw_armor' : {"W": 1.00},
 'fw' : {"W": 0.1, "EUROFER97" : 0.9},
-'breeder' : {"Be12Ti": 0.8, "Li4SiO4Li60.0":0.14837, "Li2TiO3Li60.0":0.05163},
+'breeder' : {"Be12Ti": 0.8, "Li4SiO4Li60.0":0.14837, "Li2TiO3Li60.0":0.05163}, #with mol% to vol% conversion
+#'breeder' : {"Li4SiO4Li60.0":0.65, "Li2TiO3Li60.0":0.35}, #need to convert mol% to vol%
 'bw' : {"MF82H" : 0.8, "HeNIST" : 0.2},
 'manifold_front_plate' : {"EUROFER97": 1.0},
 'manifold' : {"HeT410P80": 1.00},
-'manifold_back_plate' : {"EUROFER97": 1.00},
+'manifold_back_plate' : {"HeT410P80": 1.00},
 'hts_front_plate' : {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
 'hts': {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
 'hts_back_plate' : {"MF82H": 0.20, "HeNIST": 0.28, "BMF82H" : 0.52},
@@ -36,7 +38,7 @@ material_comp = {
 'coil_pack' : {"JK2LBSteel": 0.3, "Cu": 0.25, "TernaryNb3Sn" : 0.25, "Eins" : 0.1, "HeNIST" : 0.1},
 }
 
-citation_list = {
+    citation_list = {
     'fw_armor' : "ZhouEUDEMOHCPB_2023",
     'fw' : "ZhouEUDEMOHCPB_2023",
     'breeder' : "ZhouEUDEMOHCPB_2023",
@@ -58,23 +60,50 @@ citation_list = {
     'coil_pack_front_plate' : "DavisFusEngDes_2018",
     'coil_pack' : "DavisFusEngDes_2018",
     }
+    return material_comp, citation_list
 
-for mat_name, comp in material_comp.items():
-    mat_data[mat_name] = {
+def make_mixed_mat_lib(material_comp, citation_list, pure_mat_json):
+    '''
+    Creates dictionary consisting of material name, composition, and citation.
+    '''
+    mat_data = {}
+    for mat_name, comp in material_comp.items():
+        mat_data[mat_name] = {
               "vol_fracs": comp,
               "mixture_citation" : citation_list[mat_name],
           } 
 
-# Load material library
-mat_lib = mdbt.MaterialLibrary()
-mat_lib.from_json("PureFusionMaterials_libv1.json")
+    # Load material library
+    mat_lib = mdbt.MaterialLibrary()
+    mat_lib.from_json(pure_mat_json)
 
-# create material library object
-mixmat_lib = mdbt.MaterialLibrary()
-for mat_name, mat_input in mat_data.items():
+    # create material library object
+    mixmat_lib = mdbt.MaterialLibrary()
+    for mat_name, mat_input in mat_data.items():
         mixmat_lib[mat_name] = mdbt.mix_by_volume(
             mat_lib, mat_input["vol_fracs"], mat_input["mixture_citation"]
         )
+    return mixmat_lib
+    
+def main():
+    def parse_args():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--HCPB_YAML', default = 'HCPB_YAML.yaml', help="Path (str) to YAML containing inputs for HCPB build dictionary & mix materials")
+        args = parser.parse_args()
+        return args
+    
+    def read_yaml(args):
+        with open(args.HCPB_YAML, 'r') as hcpb_yaml:
+            yaml_inputs = yaml.safe_load(hcpb_yaml)
+        return yaml_inputs
+    
+    args = parse_args()
+    yaml_inputs = read_yaml(args)
+    material_comp, citation_list = mat_data()
+    mixmat_lib = make_mixed_mat_lib(material_comp, citation_list,
+                                    yaml_inputs['filenames']['pure_mat_json'])
+    # write OpenMC Materials xml 
+    mixmat_lib.write_openmc(yaml_inputs['filenames']['mixed_mat_xml'])
 
-# write HCPB material library
-mixmat_lib.write_openmc("mixedPureFusionMatsHCPB_libv1.xml")
+if __name__ == "__main__":
+    main()    

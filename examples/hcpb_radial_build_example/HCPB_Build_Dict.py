@@ -1,17 +1,12 @@
 import openmc
 import json
+import yaml
+import argparse
 from radial_build_tools import ToroidalModel, RadialBuildPlot
 from HCPB_Mix_Materials import material_comp
 
-major_radius = 800
-minor_radius_z = 114
-minor_radius_xy = 114
-scoring_layer_thickness = 0.5
-
-# openmc Materials object:
-materials = openmc.Materials.from_xml("mixedPureFusionMatsHCPB_libv1.xml")
-
-build_dict = {
+def make_build_dict(scoring_layer_thickness):
+    build_dict = {
     "sol": {
         "thickness": 5,
         "composition": {"Void": 1.0},
@@ -170,11 +165,42 @@ build_dict = {
         "scores": ["heating"],
     },
 }
+    return build_dict
+    
+def make_toroidal_model(materials_xml_file, major_radius, minor_radius_z, minor_radius_xy, build_dict):
+        # openmc Materials object:
+        materials = openmc.Materials.from_xml(materials_xml_file)
+        toroidal_model = ToroidalModel(
+        build_dict, major_radius, minor_radius_z, minor_radius_xy, materials)
+        return toroidal_model
 
-toroidal_model = ToroidalModel(
-    build_dict, major_radius, minor_radius_z, minor_radius_xy, materials
-)
+def plot_radial_build(radial_plot_name, build_dict):
+        radial_build_plot = RadialBuildPlot(build_dict, title=radial_plot_name, size=(15, 5))
+        radial_build_plot.plot_radial_build()
+        radial_build_plot.to_png()
+        return radial_build_plot
 
-rbp = RadialBuildPlot(build_dict, title="HCPB Toroidal Model", size=(15, 5))
-rbp.plot_radial_build()
-rbp.to_png()
+def main():
+    def parse_args():
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--HCPB_YAML', default = 'HCPB_YAML.yaml', help="Path (str) to YAML containing inputs for HCPB build dictionary & mix materials")
+        args = parser.parse_args()
+        return args
+    
+    def read_yaml(args):
+        with open(args.HCPB_YAML, 'r') as hcpb_yaml:
+            yaml_inputs = yaml.safe_load(hcpb_yaml)
+        return yaml_inputs
+   
+    args = parse_args()
+    yaml_inputs = read_yaml(args)
+    build_dict = make_build_dict(yaml_inputs['geom']['scoring_layer_thickness'])
+    toroidal_model = make_toroidal_model(yaml_inputs['filenames']['mat_xml'],
+                                         yaml_inputs['geom']['major_radius'],
+                                         yaml_inputs['geom']['minor_radius_z'],
+                                         yaml_inputs['geom']['minor_radius_xy'],
+                                         build_dict)
+    plot_radial_build(yaml_inputs['filenames']['radial_plot_name'], build_dict)
+
+if __name__ == "__main__":
+    main()    
