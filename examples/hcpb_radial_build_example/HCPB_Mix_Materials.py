@@ -103,7 +103,7 @@ def main():
     mixmat_lib = make_mixed_mat_lib(material_comp, citation_list,
                                     yaml_inputs['filenames']['pure_mat_json'])
     # write OpenMC Materials xml 
-    mixmat_lib.write_openmc(yaml_inputs['filenames']['mixed_mat_xml'])
+    mixmat_lib.write_openmc(yaml_inputs['filenames']['mat_xml'])
 
 if __name__ == "__main__":
     main()    
