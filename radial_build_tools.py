@@ -60,24 +60,43 @@ class RadialBuildPlot(object):
 
     def assign_colors(self):
         """
-        Assign colors to each layer. If a color is provided, use it.
-        If not, generate a random color that hasn't been used yet.
+        Assign colors to each layer in the build definition using a two-phase approach:
+
+        Phase 1: Handle Pre-specified Colors
+            - Loop 1 iterates through the build dictionary and checks for the 'color' key.
+            - If a pre-specified color is found, it is added to the `used_colors` set.
+            - The color is also removed from the `available_colors` set to avoid random reassignment.
+            - Layers with pre-specified colors will always use those colors, even if they duplicate others.
+
+        Phase 2: Assign Unique Colors to Unspecified Layers
+            - Loop 2 iterates through layers that do not have a pre-specified color.
+            - For these layers, a random color is chosen from the `available_colors` set.
+            - This ensures that auto-assigned colors are unique and do not duplicate either user-specified or previously assigned colors.
+            - Once a color is assigned, it is removed from `available_colors` and added to `used_colors`.
+
+        Returns:
+            list of str: A list of color strings corresponding to each layer in the build.
         """
         colors = []
         for layer in self.build.values():
-            if "color" not in layer:
-                layer["color"] = random.choice(list(self.available_colors))
-            color = layer["color"]
-            self.used_colors.add(color)
-            self.available_colors.discard(color)
+            # Check for user-specified colors
+            if "color" in layer:
+                color = layer["color"]
+                self.used_colors.add(color)  # Mark as used
+                self.available_colors.discard(color)  # Remove from available pool
+            else:
+                # Assign a unique random color
+                color = self.generate_unique_color()
+                layer["color"] = color  # Store the color in the layer
 
-            colors.append(color)
+            colors.append(color)  # Add the color to the list for this layer
 
         return colors
 
     def generate_unique_color(self):
         """
-        Generate a random color that has not been used yet.
+        Generate a random color that has not been used yet. Ensures a color
+        isn't randomly selected that has already been used.
         """
         color = random.choice(list(self.available_colors))
         self.available_colors.remove(color)  # Remove chosen color
