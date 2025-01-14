@@ -2,12 +2,16 @@ import openmc
 from radial_build_tools import ToroidalModel, RadialBuildPlot
 from dcll_materials import mix_material_data
 
+
 def make_build_dict():
+    """
+    Returns a build dictionary for use with radial_build_tools material name,
+    composition and layer thickness
+    """
     build_dict = {
-        "sol": {"thickness": 5, 
-            "composition": {"Void": 1.0}
-        },
-        "fw_armor": {"thickness": 0.2,
+        "sol": {"thickness": 5, "composition": {"Void": 1.0}},
+        "fw_armor": {
+            "thickness": 0.2,
         },
         "fw": {
             "thickness": 3.8,
@@ -24,12 +28,8 @@ def make_build_dict():
         "manifold": {
             "thickness": 6,
         },
-        "hts": {
-            "thickness": 10
-        },
-        "gap_1": {"thickness": 1, 
-            "composition": {"Void": 1.0}
-        },
+        "hts": {"thickness": 10},
+        "gap_1": {"thickness": 1, "composition": {"Void": 1.0}},
         "vv_front_plate": {
             "thickness": 2,
         },
@@ -39,11 +39,10 @@ def make_build_dict():
         "vv_back_plate": {
             "thickness": 2,
         },
-        "gap_2": {"thickness": 2,
+        "gap_2": {
+            "thickness": 2,
         },
-        "lts": {
-            "thickness": 10
-        },
+        "lts": {"thickness": 10},
         "thermal_insulator": {
             "thickness": 10,
         },
@@ -51,7 +50,7 @@ def make_build_dict():
             "thickness": 52,
         },
     }
-    material_dict=mix_material_data()
+    material_dict = mix_material_data()
     for layer_name, properties in build_dict.items():
         if "composition" not in properties.keys():
             properties["material_name"] = layer_name
@@ -60,26 +59,34 @@ def make_build_dict():
 
 
 def plot_dcll_radial_build(build_dict):
-# make a radial build plot of the model
+    """
+    Makes a radial build plot of the model from the build dictionary
+    """
     rbp = RadialBuildPlot(build_dict, title="Toroidal Model DCLL", size=(6, 3))
     rbp.plot_radial_build()
     rbp.to_png()
-    return rbp
+
 
 def main():
+    """
+    Writes model XML from ToroidalModel 
+    """
     major_radius = 800
     minor_radius_z = 114
     minor_radius_xy = 114
-    materials=openmc.Materials.from_xml("mixedMaterialsDCLL_libv1.xml")
-    build_dict=make_build_dict()
+    materials = openmc.Materials.from_xml("mixedMaterialsDCLL_libv1.xml")
+
+    build_dict = make_build_dict()
 
     toroidal_model = ToroidalModel(
-    build_dict, major_radius, minor_radius_z, minor_radius_xy, materials
+        build_dict, major_radius, minor_radius_z, minor_radius_xy, materials
     )
-
+    
     model, cells = toroidal_model.get_openmc_model()
     model.export_to_model_xml()
-    rbp=plot_dcll_radial_build(build_dict)
+    build_dict = make_build_dict()
+    plot_dcll_radial_build(build_dict)
+
 
 if __name__ == "__main__":
     main()

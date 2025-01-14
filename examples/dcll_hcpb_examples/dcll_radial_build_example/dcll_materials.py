@@ -4,6 +4,9 @@ import material_db_tools as mdbt
 
 
 def mix_material_data():
+    """
+    Returns material dictionary with composition and citation information
+    """
     material_dict = {
         "sol": {"composition": {"Void": 1.0}, "citation": "DavisFusEngDes_2018"},
         "fw_armor": {
@@ -36,15 +39,7 @@ def mix_material_data():
             "composition": {"MF82H": 0.3, "HeNIST": 0.7},
             "citation": "DavisFusEngDes_2018",
         },
-        "hts_front_plate": {
-            "composition": {"HeNIST": 0.2, "MF82H": 0.28, "BMF82H": 0.52},
-            "citation": "DavisFusEngDes_2018",
-        },
         "hts": {
-            "composition": {"HeNIST": 0.2, "MF82H": 0.28, "BMF82H": 0.52},
-            "citation": "DavisFusEngDes_2018",
-        },
-        "hts_back_plate": {
             "composition": {"HeNIST": 0.2, "MF82H": 0.28, "BMF82H": 0.52},
             "citation": "DavisFusEngDes_2018",
         },
@@ -62,25 +57,13 @@ def mix_material_data():
             "citation": "DavisFusEngDes_2018",
         },
         "gap_2": {"composition": {"AirSTP": 1.0}, "citation": "ZhouEUDEMOHCPB_2023"},
-        "lts_front_plate": {
-            "composition": {"Cr3FS": 0.39, "BMF82H": 0.29, "Water": 0.32},
-            "citation": "DavisFusEngDes_2018",
-        },
         "lts": {
-            "composition": {"Cr3FS": 0.39, "BMF82H": 0.29, "Water": 0.32},
-            "citation": "DavisFusEngDes_2018",
-        },
-        "lts_back_plate": {
             "composition": {"Cr3FS": 0.39, "BMF82H": 0.29, "Water": 0.32},
             "citation": "DavisFusEngDes_2018",
         },
         "thermal_insulator": {
             "composition": {"AirSTP": 1.0},
             "citation": "ZhouEUDEMOHCPB_2023",
-        },
-        "coil_pack_front_plate": {
-            "composition": {"SS316LN": 1.0},
-            "citation": "DavisFusEngDes_2018",
         },
         "coil_pack": {
             "composition": {"SS316LN": 1.0},
@@ -91,7 +74,10 @@ def mix_material_data():
 
 
 def mix_materials(material_dict):
-    # Load material library
+    """
+    Uses material dictionary and material_db_tools to create a PyNE material library
+    """
+    # Load pure material library
     mat_lib = mdbt.MaterialLibrary()
     mat_lib.from_json("PureFusionMaterials_libv1.json")
 
@@ -105,15 +91,19 @@ def mix_materials(material_dict):
             mat_data["composition"],
             mat_data["citation"],
             density_factor=mat_data.get("density_factor", 1),
-        )  
-    mixmat_lib.write_openmc("mixedMaterialsDCLL_libv1.xml")
+        )
     return mixmat_lib
 
 
 # write DCLL material library
 def main():
-    material_dict= mix_material_data()
-    mixmat_lib= mix_materials(material_dict)
+    """
+    Writes OpenMC materials object file
+    """
+    material_dict = mix_material_data()
+    mixmat_lib = mix_materials(material_dict)
+    mixmat_lib.write_openmc("mixedMaterialsDCLL_libv1.xml")
+
 
 if __name__ == "__main__":
     main()
