@@ -77,4 +77,4 @@ for mat_name, mat_input in mat_data.items():
         )
 
 # write HCPB material library
-mixmat_lib.write_json("mixedPureFusionMatsHCPB_libv1.json")
+mixmat_lib.write_openmc("mixedPureFusionMatsHCPB_libv1.xml")
