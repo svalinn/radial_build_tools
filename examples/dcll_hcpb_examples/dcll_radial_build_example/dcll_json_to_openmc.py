@@ -1,10 +1,14 @@
 import openmc
 import json
 
-def makematerial(material_json,path_to_cross_sections):
+def makematerial(material_json, path_to_cross_sections):
     """
     imports previously generated JSON file and creates OpenMC materials object
 
+    Parameters:
+        material_json (.json): JSON file with materials information
+        path_to_cross_sections (file path): file path to cross_section.xml
+    
     Returns: 
         materials: OpenMC materials object 
     """
