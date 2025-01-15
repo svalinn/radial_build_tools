@@ -5,7 +5,7 @@ from dcll_materials import mix_material_data
 
 def make_build_dict():
     """
-    Returns a build dictionary for use with radial_build_tools material name,
+    Returns a build dictionary for use with radial_build_tools, includes material name,
     composition and layer thickness
     """
     build_dict = {
@@ -28,7 +28,9 @@ def make_build_dict():
         "manifold": {
             "thickness": 6,
         },
-        "hts": {"thickness": 10},
+        "hts": {
+            "thickness": 10
+            },
         "gap_1": {"thickness": 1, "composition": {"Void": 1.0}},
         "vv_front_plate": {
             "thickness": 2,
@@ -42,7 +44,9 @@ def make_build_dict():
         "gap_2": {
             "thickness": 2,
         },
-        "lts": {"thickness": 10},
+        "lts": {
+            "thickness": 10
+            },
         "thermal_insulator": {
             "thickness": 10,
         },
@@ -62,7 +66,7 @@ def plot_dcll_radial_build(build_dict):
     """
     Makes a radial build plot of the model from the build dictionary
     """
-    rbp = RadialBuildPlot(build_dict, title="Toroidal Model DCLL", size=(6, 3))
+    rbp = RadialBuildPlot(build_dict, title="Toroidal Model DCLL", size=(9, 4))
     rbp.plot_radial_build()
     rbp.to_png()
 
@@ -86,6 +90,7 @@ def main():
     model.export_to_model_xml()
     build_dict = make_build_dict()
     plot_dcll_radial_build(build_dict)
+
 
 
 if __name__ == "__main__":
