@@ -20,6 +20,8 @@ class RadialBuildPlot(object):
                                 "material name": fraction (float)
                                 },
                             "description": (str),
+                            "color": (str): Optional matplotlib color string 
+                                          or hex code to specify the layer's color.
                     }
                 }
             The dict corresponding to each "layer_name" key may be empty,
@@ -297,6 +299,8 @@ class ToroidalModel(object):
                                 associated OpenMC material library. To have a
                                 layer with vacuum/void do not include the
                                 'material_name' key.
+                            "color": (str): Optional matplotlib color string 
+                                          or hex code to specify the layer's color.
                     }
                 }
             The dict corresponding to each "layer_name" key may be empty,
