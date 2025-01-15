@@ -77,7 +77,7 @@ def main():
     Writes model XML from ToroidalModel 
     """
     parser=argparse.ArgumentParser()
-    parser.add_argument('-p','--process', action='store_true', help="Call the plotting if this flag is provided.")
+    parser.add_argument('-p','--process', action='store_true', help="Call the plotting function if this flag is provided.")
     args = parser.parse_args()
     
     major_radius = 800
