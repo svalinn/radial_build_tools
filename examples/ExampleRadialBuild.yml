@@ -1,55 +1,69 @@
 build:
   sol:
     thickness: 8
+    color: '#acc2d9'
   FW_armor:
     thickness: 0.2
+    color: '#56ae57'
   FW:
     thickness: 3.8
     composition:
       MF82H: 0.34
       HeT410P80: 0.66
+    color: '#b2996e'
   breeder:
     description: Composition and thickness vary
     thickness: 8
+    color: '#a8ff04'
   BW:
     thickness: 2
     composition:
       MF82H: 0.8
       HeT410P80: 0.2
+    color: '#69d84f'
   manifolds:
     thickness: 10
     description: composition varies
+    color: '#894585'
   HTS:
     description: Composition and thickness vary
     thickness: 8
+    color: '#d4ffff'
   gap_1:
     composition:
       Void: 1.0
     thickness: 8
+    color: '#65ab7c'
   vv_front_plate:
     thickness: 2
     composition:
       SS316L: 1.0
+    color: '#952e8f'
   vv_fill:
     thickness: 6
     composition:
       SS316L: 0.6
       HeT410P80: 0.4
+    color: '#fcfc81'
   vv_back_plate:
     thickness: 2
     composition:
       SS316L: 1.0
+    color: '#a5a391'
   gap_2:
     thickness: 2
     composition:
       Void: 1.0
+    color: '#388004'
   LTS:
     description: Composition and thickness vary
     thickness: 8
+    color: '#e0218a'
   Thermal Insulator (Gap):
     thickness: 10
     composition:
       Void: 1.0
+    color: '#4c9085'
   Coil Pack:
     thickness: 52.5
     composition:
@@ -59,23 +73,8 @@ build:
       Solder: 0.0438
       HeT410P80: 0.0288
     description: '[combines winding pack and coil case]'
+    color: '#5e9b8a'
 title: Example Radial Build
-colors:
-- '#acc2d9'
-- '#56ae57'
-- '#b2996e'
-- '#a8ff04'
-- '#69d84f'
-- '#894585'
-- '#70b23f'
-- '#d4ffff'
-- '#65ab7c'
-- '#952e8f'
-- '#fcfc81'
-- '#a5a391'
-- '#388004'
-- '#4c9085'
-- '#5e9b8a'
 max_characters: 40
 max_thickness: 1000000.0
 size:

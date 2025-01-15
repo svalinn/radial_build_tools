@@ -4,30 +4,36 @@ build:
     thickness: 4
     composition:
       Vacuum: 1
+    color: "#E0E0E0"
   FW:
     thickness: 4
     composition:
       MF82H: 0.34
       He: 0.66
+    color: "#DAA520"
   Breeder:
     thickness: 50
     composition:
       FNSFDCLL: 1.0
+    color: "#B22222"
   BW:
     thickness: 4
     composition:
       MF82H: 0.8
       He: 0.2
+    color: "#8B0000"
   HTS:
     thickness: 20
     composition:
       WC: 0.69
       He: 0.26
       MF82H: 0.05
+    color: "#00FF00"
   VV:
     thickness: 10
     composition:
       SS316L: 1.0
+    color: "#A9A9A9"
   LTS:
     thickness: 20
     composition:
@@ -42,3 +48,4 @@ build:
       He: 0.14
       Nb3Sn: 0.06
       Insulator: 0.08
+    color: "#FF4500"
