@@ -1,6 +1,7 @@
 import openmc
 from radial_build_tools import ToroidalModel, RadialBuildPlot
 from dcll_materials import mix_material_data
+import argparse
 
 
 def make_build_dict():
@@ -75,6 +76,10 @@ def main():
     """
     Writes model XML from ToroidalModel 
     """
+    parser=argparse.ArgumentParser()
+    parser.add_argument('-p','--process', action='store_true', help="Call the plotting if this flag is provided.")
+    args = parser.parse_args()
+    
     major_radius = 800
     minor_radius_z = 114
     minor_radius_xy = 114
@@ -89,7 +94,9 @@ def main():
     model, cells = toroidal_model.get_openmc_model()
     model.export_to_model_xml()
     build_dict = make_build_dict()
-    plot_dcll_radial_build(build_dict)
+    if args.process:
+        plot_dcll_radial_build(build_dict)
+    
 
 
 
