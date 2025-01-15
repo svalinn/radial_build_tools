@@ -87,18 +87,18 @@ def make_mixed_mat_lib(mat_info, pure_mat_json):
         )
     return mixmat_lib
     
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--HCPB_YAML', default = 'HCPB_YAML.yaml', help="Path (str) to YAML containing inputs for HCPB build dictionary & mix materials")
+    args = parser.parse_args()
+    return args
+    
+def read_yaml(args):
+    with open(args.HCPB_YAML, 'r') as hcpb_yaml:
+        yaml_inputs = yaml.safe_load(hcpb_yaml)
+    return yaml_inputs
+    
 def main():
-    def parse_args():
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--HCPB_YAML', default = 'HCPB_YAML.yaml', help="Path (str) to YAML containing inputs for HCPB build dictionary & mix materials")
-        args = parser.parse_args()
-        return args
-    
-    def read_yaml(args):
-        with open(args.HCPB_YAML, 'r') as hcpb_yaml:
-            yaml_inputs = yaml.safe_load(hcpb_yaml)
-        return yaml_inputs
-    
     args = parse_args()
     yaml_inputs = read_yaml(args)
     mat_info = make_mat_data()
