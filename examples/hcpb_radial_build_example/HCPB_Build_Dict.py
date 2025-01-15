@@ -129,7 +129,6 @@ def main():
                                          yaml_inputs['geom']['minor_radius_xy'],
                                          build_dict)
     plot_radial_build(yaml_inputs['filenames']['radial_plot_name'], build_dict)
-    #mat_geom, cell_dict = toroidal_model.get_openmc_model()
     mat_geom.export_to_model_xml(yaml_inputs['filenames']['model_xml_name'])
     
 if __name__ == "__main__":
