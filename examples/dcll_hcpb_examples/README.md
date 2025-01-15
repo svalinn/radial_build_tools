@@ -4,7 +4,7 @@ This process uses the [`fusion-materials-db`](https://github.com/svalinn/fusion-
 ![](./ToroidalModelDCLL.png)
 
 Steps
-1. Write a script to create materials object (Examples: [`dcll_materials.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_materials.py) [`HCPB_Mix_Materials.py`]())
+1. Write a script to create materials object (Examples: [`dcll_materials.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_materials.py) [`HCPB_Mix_Materials.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/hcpb_radial_build_example/HCPB_Mix_Materials.py))
     1. Import [`material_db_tools.py`](https://github.com/svalinn/fusion-material-db/blob/main/material-db-tools/material_db_tools.py)
     2. Create a function to make a dictionary with each entry of the form:     
     ```
@@ -23,7 +23,7 @@ Steps
         
         2. Calls `mix_by_volume()` from [`material_db_tools.py`](https://github.com/svalinn/fusion-material-db/blob/main/material-db-tools/material_db_tools.py) to create a PyNE material library
     4. Create a `main()` function to call the helper functions and export the materials library to XML file
-2. Create toroidal model (Examples: [`dcll_radial_build.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_radial_build.py) [`HCPB_Build_Dict.py`]())
+2. Create toroidal model (Examples: [`dcll_radial_build.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_radial_build.py) [`HCPB_Build_Dict.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/hcpb_radial_build_example/HCPB_Build_Dict.py))
     1. Import `ToroidalModel` and `RadialBuildPlot` from [`radial_build_tools.py`](https://github.com/svalinn/radial_build_tools/blob/main/radial_build_tools.py)
     2. Import function created earlier (Step 1.ii.) that makes materials dictionary
     3. Create a function that does the following:
