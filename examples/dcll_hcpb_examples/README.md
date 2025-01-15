@@ -1,13 +1,12 @@
 ## Workflow for using `radial_build_tools` and `fusion-materials-db`
-This process uses the [`fusion-materials-db`](https://github.com/svalinn/fusion-material-db) to create a JSON file that defines the composition of materials used in a simulation, like an OpenMC or MCNP model. The examples are for OpenMC with the use of a function to create an OpenMC materials object from the JSON file. This is used with [`radial_build_tools`](https://github.com/svalinn/radial_build_tools) to generate a model for OpenMC (geometry and materials). The result is a "model.xml" file and a visual of the geometry, an example is shown below.
+This process uses the [`fusion-materials-db`](https://github.com/svalinn/fusion-material-db) to create an OpenMC materials object that defines the composition of materials used in an OpenMC simulation. This is used with [`radial_build_tools`](https://github.com/svalinn/radial_build_tools) to generate a model for OpenMC (geometry and materials). The result is a "model.xml" file and a visual of the geometry, an example is shown below.
 
 ![](ToroidalModelDCLL.png)
 
 Steps
-1. Create Materials Dictionary file
+1. Write a script to create materials object (Examples: [`dcll_materials.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_materials.py) [`HCPB_Mix_Materials.py`]())
     1. Import [`material_db_tools.py`](https://github.com/svalinn/fusion-material-db/blob/main/material-db-tools/material_db_tools.py)
-    2. Open [`PureFusionMaterials_libv1.json`](https://github.com/svalinn/fusion-material-db/blob/main/db-outputs/PureFusionMaterials_libv1.json)
-    3. Create dictionary with each entry of the form:     
+    2. Create a function to make a dictionary with each entry of the form:     
     ```
     "<material_name>": {
         "composition": {"<material_component>": <fraction>, ...},
@@ -16,21 +15,31 @@ Steps
     ```
     adding `"density_factor"` when needed
     
-    4. More detail given in [`material_db_tools.py`](https://github.com/svalinn/fusion-material-db/blob/main/material-db-tools/material_db_tools.py)
-    5. Export to JSON file
-    6. Examples: [`dcll_materials.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_materials.py) [`HCPB_Mix_Materials.py`]()
-2. Create build file
-    1. Import JSON to openmc function [`dcll_json_to_openmc.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_json_to_openmc.py) or [`openmc_Materials_Object_from_json.py`]()
-    2. Import `ToroidalModel` from [`radial_build_tools.py`](https://github.com/svalinn/radial_build_tools/blob/main/radial_build_tools.py)
-    2. Set major and minor radii 
-    3. Call JSON to openmc function with JSON file and path to cross_sections file
-    4. Create nested build dictionary of the form:
-    ```
-    "<part_name>": {"thickness": <thickness>,
-        "scores": ["<score>"],
-        "material_name": "<material_name>",
-    },
-    ``` 
-    5. If layer is void add `"composition": {"Void": 1.0}` to the dictionary
-    6. Call `TorodialModel`
-    7. Examples: [`dcll_radial_build.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_radial_build.py) [`HCPB_Build_Dict.py`]()
+    More detail given in [`material_db_tools.py`](https://github.com/svalinn/fusion-material-db/blob/main/material-db-tools/material_db_tools.py)
+
+    3. Create a function that does the following:
+        1. Opens [`PureFusionMaterials_libv1.json`](https://github.com/svalinn/fusion-material-db/blob/main/db-outputs/PureFusionMaterials_libv1.json) 
+        
+        2. Uses the `material_db_tools` `mix_by_volume` to create a PyNE material library
+    4. Create a function to call the others and export the materials library to XML file
+2. Create toroidal model (Examples: [`dcll_radial_build.py`](https://github.com/svalinn/radial_build_tools/tree/main/examples/dcll_hcpb_examples/dcll_radial_build_example/dcll_radial_build.py) [`HCPB_Build_Dict.py`]())
+    1. Import `ToroidalModel` and `RadialBuildPlot` from [`radial_build_tools.py`](https://github.com/svalinn/radial_build_tools/blob/main/radial_build_tools.py)
+    2. Import function created earlier to make materials dictionary
+    3. Create a function that does the following:
+        1. Creates nested build dictionary of the form:
+        ```
+        "<layer_name>": {
+            "thickness": <thickness>,
+        },
+        ``` 
+        If layer is void add `"composition": {"Void": 1.0}` to the dictionary
+        
+        Each layer name should match it's material name in the materials dictionary
+
+        2. Adds "material_name" (based on the layer_name) and "composition"(pulled from materials dictionary) to the build dictionary
+    4. Create a function that uses `RadialBuildPlot` to generate an image of the build
+    5. Create a function that does the following
+        1. Defines major and minor radii (either manually or with YAML file)
+        2. Defines OpenMC materials from XML
+        3. Calls build dictionary, `ToroidalModel` and plotting functions
+        4. Exports model to XML
