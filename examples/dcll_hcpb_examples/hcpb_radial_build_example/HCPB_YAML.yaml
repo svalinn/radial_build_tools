@@ -1,0 +1,10 @@
+filenames:
+    mat_xml : mixedPureFusionMatsHCPB_libv1.xml
+    pure_mat_json : PureFusionMaterials_libv1.json
+    model_xml_name : HCPB_model.xml
+
+geom:
+    scoring_layer_thickness : 0.50
+    major_radius : 800.0
+    minor_radius_z : 114.0
+    minor_radius_xy : 114.0
