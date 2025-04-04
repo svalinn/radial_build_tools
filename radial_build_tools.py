@@ -460,12 +460,11 @@ class ToroidalModel(object):
         """
         Build cell tallies for each score given in build dictionary, if given
         """
-        cells = self.cell_dict
         tally_list=[]
         for layer, layer_dict in self.build.items():
             if "scores" in layer_dict.keys():
                 for score in layer_dict["scores"]:
-                    cell_filter = openmc.CellFilter(cells[layer])
+                    cell_filter = openmc.CellFilter(self.cell_dict[layer])
                     cell_tally = openmc.Tally(name = f"{layer} {score}")
                     cell_tally.filters = [cell_filter]
                     cell_tally.scores = [score]
