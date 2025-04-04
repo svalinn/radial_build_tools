@@ -457,15 +457,19 @@ class ToroidalModel(object):
         self.geometry = openmc.Geometry(self.cell_list)
 
     def build_tallies(self):
+        """
+        Build cell tallies for each score given in build dictionary, if given
+        """
         cells = self.cell_dict
         tally_list=[]
         for layer, layer_dict in self.build.items():
             if "scores" in layer_dict.keys():
-                cell_filter = openmc.CellFilter(cells[layer])
-                cell_tally = openmc.Tally(name = layer)
-                cell_tally.filters = [cell_filter]
-                cell_tally.scores = layer_dict["scores"]
-                tally_list.append(cell_tally)
+                for score in layer_dict["scores"]:
+                    cell_filter = openmc.CellFilter(cells[layer])
+                    cell_tally = openmc.Tally(name = f"{layer} {score}")
+                    cell_tally.filters = [cell_filter]
+                    cell_tally.scores = [score]
+                    tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
 
     def build_openmc_model(self):
