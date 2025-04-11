@@ -456,6 +456,21 @@ class ToroidalModel(object):
 
         self.geometry = openmc.Geometry(self.cell_list)
 
+    def build_tallies(self):
+        """
+        Build cell tallies for each score given in build dictionary, if given
+        """
+        tally_list=[]
+        for layer, layer_dict in self.build.items():
+            if "scores" in layer_dict.keys():
+                for score in layer_dict["scores"]:
+                    cell_filter = openmc.CellFilter(self.cell_dict[layer])
+                    cell_tally = openmc.Tally(name = f"{layer} {score}")
+                    cell_tally.filters = [cell_filter]
+                    cell_tally.scores = [score]
+                    tally_list.append(cell_tally)
+        self.tallies = openmc.Tallies(tally_list)
+
     def build_openmc_model(self):
         """
         Builds openmc model using the build definition
@@ -464,6 +479,7 @@ class ToroidalModel(object):
         self.build_regions()
         self.build_cells()
         self.get_bounded_geometry()
+        self.build_tallies()
 
     def get_openmc_model(self):
         """
@@ -477,7 +493,7 @@ class ToroidalModel(object):
                 the model object returned by this function.
         """
         self.build_openmc_model()
-        model = openmc.Model(geometry=self.geometry, materials=self.materials)
+        model = openmc.Model(geometry=self.geometry, materials=self.materials, tallies=self.tallies)
         return model, self.cell_dict
     
 

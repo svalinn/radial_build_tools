@@ -20,9 +20,7 @@ def make_build_dict():
         "be_multiplier": {
             "thickness": 0,
         },
-        "breeder": {
-            "thickness": 50,
-        },
+        "breeder": {"thickness": 50, "scores": ["flux", "H3-production"]},
         "bw": {
             "thickness": 2,
         },
@@ -55,7 +53,9 @@ def make_build_dict():
     for layer_name, properties in build_dict.items():
         if "composition" not in properties.keys():
             properties["material_name"] = layer_name
-            properties["composition"] = material_dict[layer_name]["composition"]
+            properties["composition"] = material_dict[layer_name][
+                "composition"
+            ]
     return build_dict
 
 
@@ -73,7 +73,12 @@ def main():
     Writes model XML from ToroidalModel
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--plot", action="store_true", help="Call the plotting function if this flag is provided.")
+    parser.add_argument(
+        "-p",
+        "--plot",
+        action="store_true",
+        help="Call the plotting function if this flag is provided.",
+    )
     args = parser.parse_args()
 
     major_radius = 800
