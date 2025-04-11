@@ -20,7 +20,7 @@ def make_build_dict():
         "be_multiplier": {
             "thickness": 0,
         },
-        "breeder": {"thickness": 50, "scores": ["heating", "H3-production"]},
+        "breeder": {"thickness": 50, "scores": ["flux", "H3-production"]},
         "bw": {
             "thickness": 2,
         },

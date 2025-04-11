@@ -41,7 +41,7 @@ build = {
         "thickness": 20,
         "material_name": PbLi.name,
         "description": PbLi.name,
-        "scores": ["heating", "H3-production"],
+        "scores": ["flux", "H3-production"],
     },
     "bogus layer": {
         "thickness": 0,
