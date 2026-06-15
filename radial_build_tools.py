@@ -134,6 +134,9 @@ class RadialBuildPlot(object):
         """
 
         data_dict = self.__dict__
+        temp_available_colors = data_dict["available_colors"]
+        temp_used_colors = data_dict["used_colors"]
+        temp_colors = data_dict["colors"]
 
         del data_dict["figure"]
         del data_dict["available_colors"]
@@ -145,6 +148,10 @@ class RadialBuildPlot(object):
             yaml.safe_dump(
                 data_dict, file, default_flow_style=False, sort_keys=False
             )
+
+        self.available_colors = temp_available_colors
+        self.used_colors = temp_used_colors
+        self.colors = temp_colors
 
     def get_layer_string(self, name, layer):
         """
