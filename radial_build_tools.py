@@ -92,7 +92,7 @@ class RadialBuildPlot(object):
                 layer["color"] = color  # Store the color in the layer
 
             colors.append(color)  # Add the color to the list for this layer
-
+        
         return colors
 
     def generate_unique_color(self):
@@ -133,17 +133,19 @@ class RadialBuildPlot(object):
         title.yml
         """
 
-        data_dict = self.__dict__
-        temp_fig = data_dict["figure"]
-        del data_dict["figure"]
+        data_dict = self.__dict__.copy()
 
+        del data_dict["figure"]
+        del data_dict["available_colors"]
+        del data_dict["used_colors"]
+        del data_dict["colors"]
         filename = self.title.replace(" ", "") + ".yml"
 
         with open(filename, "w") as file:
             yaml.safe_dump(
                 data_dict, file, default_flow_style=False, sort_keys=False
             )
-        self.figure = temp_fig
+
 
     def get_layer_string(self, name, layer):
         """
