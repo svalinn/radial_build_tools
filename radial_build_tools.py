@@ -134,7 +134,7 @@ class RadialBuildPlot(object):
         """
 
         data_dict = self.__dict__
-
+        temp_fig = data_dict["figure"]
         del data_dict["figure"]
 
         filename = self.title.replace(" ", "") + ".yml"
@@ -143,6 +143,7 @@ class RadialBuildPlot(object):
             yaml.safe_dump(
                 data_dict, file, default_flow_style=False, sort_keys=False
             )
+        self.figure = temp_fig
 
     def get_layer_string(self, name, layer):
         """
