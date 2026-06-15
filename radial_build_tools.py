@@ -133,10 +133,7 @@ class RadialBuildPlot(object):
         title.yml
         """
 
-        data_dict = self.__dict__
-        temp_available_colors = data_dict["available_colors"]
-        temp_used_colors = data_dict["used_colors"]
-        temp_colors = data_dict["colors"]
+        data_dict = self.__dict__.copy()
 
         temp_fig = data_dict["figure"]
         del data_dict["figure"]
@@ -151,9 +148,6 @@ class RadialBuildPlot(object):
             )
         self.figure = temp_fig
 
-        self.available_colors = temp_available_colors
-        self.used_colors = temp_used_colors
-        self.colors = temp_colors
 
     def get_layer_string(self, name, layer):
         """
