@@ -1,0 +1,17 @@
+title: test_build
+
+inboard:
+  FWB:
+    thickness: 2
+  breeder:
+    thickness: 20
+  shield:
+    thickness: 30
+
+outboard:
+  FWB:
+    thickness: 5
+  breeder:
+    thickness: 50
+  shield:
+    thickness: 80
