@@ -361,6 +361,7 @@ class ToroidalModel(object):
         )
 
     def build_surfaces(self):
+        print(self.build)
         """
         Build the surfaces representing the radial build using OpenMC CSG.
         """
@@ -368,12 +369,47 @@ class ToroidalModel(object):
         minor_rad_z = self.minor_rad_z
         minor_rad_xy = self.minor_rad_xy
         # build surfaces
-        surfaces = {}
+        surfaces = {
+                     "inboard": {},
+                     "outboard": {}
+        }
 
         surfaces["plasma_surface"] = openmc.ZTorus(
-            a=major_rad, b=minor_rad_z, c=minor_rad_xy
+            a=major_rad,
+            b=self.minor_rad_z,
+            c=self.minor_rad_xy
         )
-
+        #Inboard surfaces
+        minor_z= self.minor_rad_z
+        minor_xy= self.minor_rad_xy 
+        for layer in self.build["inboard"]:
+            name, layer_data = layer
+            thickness = layer_data["thickness"]
+            
+            minor_z -= thickness
+            minor_xy -= thickness
+            surfaces["inboard"][name] = openmc.ZTorus(
+                a=major_rad,
+                b=minor_z_ib,
+                c=minor_xy_ib
+            )   
+            surfaces["outboard"][name] = openmc.ZTorus(
+                a=major_rad,
+                b=minor_z_ob,
+                c=minor_xy_ob
+            )
+        for layer in self.build["outboard"]:
+            name, layer_data = layer
+            thickness = layer_data["thickness"]
+            
+            minor_z -= thickness
+            minor_xy -= thickness
+            surfaces["outboard"][name] = openmc.ZTorus(
+                a=major_rad,
+                b=minor_z_ob,
+                c=minor_xy_ob
+            )
+        self.surfaces = surfaces
         for surface, surface_dict in self.build.items():
             if surface_dict["thickness"] != 0:
                 minor_rad_z += surface_dict["thickness"]
@@ -436,7 +472,6 @@ class ToroidalModel(object):
         unbounded_geometry = openmc.Geometry(self.cell_list)
 
         bounding_box = unbounded_geometry.bounding_box
-
         vac_surf = openmc.Sphere(
             r=np.sum(
                 np.multiply(
@@ -456,7 +491,71 @@ class ToroidalModel(object):
 
         self.geometry = openmc.Geometry(self.cell_list)
 
-    def build_tallies(self):
+def validate_build(data):
+    """Ensures the parsed yaml has the required inboard and outboard keys."""
+    if not isinstance(data, dict):
+        raise ValueError("Invalid YAML format: Expected a dictionary.")
+    
+
+    required_sections = ['inboard', 'outboard']
+    for section in required_sections:
+        if section not in data:
+            raise KeyError(f"Missing required section'{section}'"
+                           )
+        if not isinstance(data[section], dict) or len(data[section]) == 0:
+            raise ValueError(f"The '{section}' section must contain a non-empty list of components.")
+        for layer in ["FWB", "shield", "breeder"]:
+            if layer not in data[section]:
+                raise KeyError(
+                f"Missing  layer '{layer}' in section"
+                )
+            if "thickness" not in data[section][layer]:
+              raise KeyError(f"Missing thickness in {section}/{layer}")    
+    return True
+
+def _builds(data):
+    return {
+        "inboard": [
+            (name, info["thickness"])
+            for name, info in data["inboard"].items()
+        ],
+        "outboard": [
+            (name, info["thickness"])
+            for name, info in data["outboard"].items()
+        ]
+    }
+def read_yaml(filename):
+    """Reads yaml file to extract title and build variables"""
+    with open(filename) as file:
+        data = yaml.safe_load(file)
+    print(yaml.dump(data))
+    print("Syntax validation passed!")
+    return data
+
+def parse_args():
+    """Parser for running as a script"""
+    parser = argparse.ArgumentParser(prog="plot_radial_build")
+
+    parser.add_argument("filename", help="YAML file defining radial build")
+
+    return parser.parse_args()
+   
+data = read_yaml(parse_args().filename)
+validate_build(data)
+build = _builds(data)
+
+total_build = {
+    "inboard": sum(layer[1] for layer in build["inboard"]),
+    "outboard": sum(layer[1] for layer in build["outboard"])
+}
+
+ib_total = total_build["inboard"]
+ob_total = total_build["outboard"]
+
+print(f"total inboard={ib_total}")
+print(f"total outboard={ob_total}")
+
+def build_tallies(self):
         """
         Build cell tallies for each score given in build dictionary, if given
         """
@@ -471,7 +570,7 @@ class ToroidalModel(object):
                     tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
 
-    def build_openmc_model(self):
+def build_openmc_model(self):
         """
         Builds openmc model using the build definition
         """
@@ -480,8 +579,9 @@ class ToroidalModel(object):
         self.build_cells()
         self.get_bounded_geometry()
         self.build_tallies()
-
-    def get_openmc_model(self):
+    
+        
+def get_openmc_model(self):
         """
         Return toroidal model built using the build definition, contains
         geometry and material information
@@ -497,31 +597,16 @@ class ToroidalModel(object):
         return model, self.cell_dict
     
 
-def parse_args():
-    """Parser for running as a script"""
-    parser = argparse.ArgumentParser(prog="plot_radial_build")
-
-    parser.add_argument("filename", help="YAML file defining radial build")
-
-    return parser.parse_args()
-
-
-def read_yaml(filename):
-    """Reads yaml file to extract title and build variables"""
-    with open(filename) as file:
-        data = yaml.safe_load(file)
-
-    return data
-
-
 def main():
+    print("Entere main")
     args = parse_args()
+    print("Filename:", args.filename)
     data = read_yaml(args.filename)
-
-    rbp = RadialBuildPlot(**data)
-    rbp.plot_radial_build()
-    rbp.to_png()
-
-
+    print("Data loaded:")
+    print(data)
 if __name__ == "__main__":
-    main()
+  main()
+print("Radial build completed successfully")   
+data=read_yaml(parse_args().filename)
+validate_build(data)
+
