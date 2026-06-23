@@ -1,0 +1,34 @@
+title: test_build
+
+inboard:
+  FWB:
+    thickness: 2
+    material_name=RAFM
+  breeder:
+    thickness: 20
+    material_name: RAFM
+  shield:
+    thickness: 30
+    material_name: RAFM
+  sol:
+    thickness: 15
+    material_name: RAFM
+  bogus layer:
+    thickness: 10
+    material_name: RAFM
+outboard:
+  FWB:
+    thickness: 5
+    material_name: RAFM
+  breeder:
+    thickness: 50
+    material_name: RAFM
+  shield:
+    thickness: 80
+    material_name: RAFM
+  sol:
+    thickness: 15
+    material_name: Vaccum
+  bogus layer:
+    thickness: 10
+    material_name: RAFM 
