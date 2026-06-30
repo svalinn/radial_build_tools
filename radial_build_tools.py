@@ -173,8 +173,6 @@ class RadialBuildPlot(object):
                 drop_whitespace=False,
             )
 
-        # ensure sensible line breaks, this is the simplest way I have
-        # found due to how the above fields can be combined
         text = f"{name}{thickness_str}\n{comp_string}{description_str}".rstrip()
 
         newlines = text.count("\n")
@@ -199,7 +197,7 @@ class RadialBuildPlot(object):
         char_to_height = 1.15
         height = char_to_height * self.max_characters
 
-        # initialize list for lower left corner of each layer rectangle
+   
         ll = [0, 0]
         fig = plt.figure(figsize=self.size)
         plt.tight_layout()
@@ -260,7 +258,7 @@ class RadialBuildPlot(object):
     @classmethod
     def from_parastell_build(cls, parastell_build_dict, phi, theta):
 
-        # access the thickness values at given theta phi
+        
         phi_list = parastell_build_dict["phi_list"]
         theta_list = parastell_build_dict["theta_list"]
         radial_build = parastell_build_dict["radial_build"]
@@ -268,7 +266,7 @@ class RadialBuildPlot(object):
         phi_index = np.where(phi_list == phi)[0]
         theta_index = np.where(theta_list == theta)[0]
         build = {}
-        # build the dictionary for plotting
+       
         for layer_name, layer in radial_build.items():
             thickness = float(
                 layer["thickness_matrix"][phi_index, theta_index][0]
@@ -314,6 +312,39 @@ class ToroidalModel(object):
             xml file for this model, or the corresponding Materials OpenMC
             object
     """
+    
+    
+    def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
+        self.build = build
+        # geometry dictionaries 
+        
+        self.surfaces = {}
+        self.regions = {}
+        self.cell_dict = {}
+        self.surf_list=[]
+        self.torus_parameters = self.torus_parameters_calculation()
+        
+        self.major_rad = major_rad
+        self.minor_rad_z = minor_rad_z
+        self.minor_rad_xy = minor_rad_xy
+        if isinstance(materials, str):
+            self.input_materials = openmc.Materials.from_xml(materials)
+        else:
+            self.input_materials = materials
+        self.assign_materials()
+
+    def expand_ib_ob():
+        """
+        Ensure that every layer has both an inboard and outboard thickness
+        by duplicating single values.
+        """
+
+        for _ , layer_data in self.build.items():
+            if "thickness" in layer_data:
+                layer_data["inboard"] = layer_data["thickness"]
+                layer_data["outboard"] = layer_data["thickness"]
+    
+    
     def build_tallies(self):
         """
         Build cell tallies for each score given in build dictionary, if given
@@ -327,29 +358,8 @@ class ToroidalModel(object):
                     cell_tally.filters = [cell_filter]
                     cell_tally.scores = [score]
                     tally_list.append(cell_tally)
-        self.tallies = openmc.Tallies(tally_list)
+        self.tallies = openmc.Tallies(tally_list)    
     
-
-    def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
-        self.build = build
-        # geometry dictionaries 
-        
-        self.surfaces = {}
-        self.regions = {}
-        self.cell_dict = {}
-        self.surf_list=[]
-        
-        
-        self.major_rad = major_rad
-        self.minor_rad_z = minor_rad_z
-        self.minor_rad_xy = minor_rad_xy
-        if isinstance(materials, str):
-            self.input_materials = openmc.Materials.from_xml(materials)
-        else:
-            self.input_materials = materials
-
-        self.assign_materials()
-        
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
@@ -360,7 +370,8 @@ class ToroidalModel(object):
                     layer_data["material_name"]
                 )
             else:
-                layer_data["material"] = None
+                layer_data["material"] = None    
+    
 
     def get_material_by_name(self, material_name):
         """
@@ -383,6 +394,32 @@ class ToroidalModel(object):
             f"no material name {material_name} was found in the library"
         )
     
+    
+    def torus_parameters_calculation(self):
+        torus_parameters = {}
+        R = self.major_rad
+        Rho = self.minor_rad_xy 
+        r = self.minor_rad_z
+        for layer,layer_data in self.build["inboard"].items():
+            if layer_data is None:
+                continue
+            thickness = layer_data["thickness"]
+        # Same thickness for all layers.
+            ib = thickness
+            ob = thickness
+            R += (ob-ib)/2
+            delta = (ob+ib)/2
+            Rho += delta
+            r += delta
+
+            # R is major 
+            torus_parameters[layer]={
+                "major_rad":R,
+                "minor_rad_xy":Rho,
+                "minor_rad_z":r 
+            }
+        return torus_parameters
+
     def build_surfaces(self):
         
         """
@@ -395,55 +432,39 @@ class ToroidalModel(object):
                 a=major_rad,
                 b=self.minor_rad_z,
                 c=self.minor_rad_xy
-                ),
-                "inboard": {},
-                "outboard": {}
-        }
-        #Inboard surfaces
-         # Inboard surfaces
-        minor_z_ib= self.minor_rad_z
-        minor_xy_ib= self.minor_rad_xy
-        
-
-        for surface, surface_dict in self.build["inboard"].items():
-            if surface_dict is None:
-                continue
-            thickness = surface_dict["thickness"]
-
-            if thickness != 0:
-                minor_z_ib += thickness
-                minor_xy_ib += thickness    
-                surfaces["inboard"][surface] = openmc.ZTorus(
-                    a=major_rad,
-                    b=minor_z_ib,
-                    c=minor_xy_ib
                 )
-            
-        #Outboard
-        # Outboard surfaces
-        minor_z_ob= self.minor_rad_z
-        minor_xy_ob= self.minor_rad_xy 
-        surfaces["outboard"][surface] = openmc.ZTorus(
-                a=major_rad,
-                b=minor_z_ob,
-                c=minor_xy_ob
-            )
+        }
 
+        minor_z= self.minor_rad_z
+        minor_xy= self.minor_rad_xy
 
-        for surface, surface_dict in self.build["outboard"].items():
-            if surface_dict is None:
+        for surface_name in self.build.keys():
+            if surface_name not in ["inboard", "outboard"]:
                 continue
-            thickness = surface_dict["thickness"]
-            if thickness != 0.0:
-                minor_z_ob += thickness
-                minor_xy_ob += thickness
-                surfaces["outboard"][surface] = openmc.ZTorus(
-                    a=major_rad,
-                    b=minor_z_ob,
-                    c=minor_xy_ob
-                )      
-        self.surfaces = surfaces
+            surface_dict = self.build[surface_name]
 
+            if surface_dict is None:
+                    continue
+            thickness = max(
+                surface_dict["thickness"]["inboard"],
+                surface_dict["thickness"]["outboard"]
+            ) 
+              
+            minor_z += thickness
+            minor_xy += thickness
+            
+            surfaces[surface_name] = openmc.ZTorus(
+                        a=major_rad,
+                        b=minor_z,
+                        c=minor_xy
+                    )
+        for surface_name, params in self.torus_parameters.items():
+            surfaces[surface_name] = openmc.ZTorus(
+                a=params["major_rad"],
+                b=params["minor_rad_z"],
+                c=params["minor_rad_xy"]
+            )  
+        self.surfaces=surfaces
     def build_regions(self):
         """
         Build OpenMC regions from the surfaces defined by the build dict
@@ -451,48 +472,51 @@ class ToroidalModel(object):
         # build regions
         regions = {}
         regions["plasma"] = -self.surfaces["plasma_surface"]
-        ib_ob_separator= openmc.ZCylinder(
-            r=self.major_rad        
-        )
-        
+        ib_ob_separator= openmc.ZCylinder(r=self.major_rad)
         #inboard
         regions["inboard"]={}
-        ib_surfaces = self.surfaces["inboard"]
+
         previous_surface=self.surfaces["plasma_surface"]
-       
-        for name, surface in ib_surfaces.items():
-            regions["inboard"][name] = (
-            -surface
-            & +previous_surface
-            & +ib_ob_separator
-            )
-            previous_surface = surface
-        regions["outboard"] = {}
-        ob_surfaces = self.surfaces["outboard"]
-        previous_surface = self.surfaces["plasma_surface"]
-        for name, surface in ob_surfaces.items():
-            regions["outboard"][name] = (
+
+        for surface_name,surface in self.surfaces.items():
+            if surface_name == "plasma_surface":
+                continue
+
+            regions["inboard"][surface_name]  = (
                 -surface
-                & +previous_surface
+                & +previous_surface 
                 & -ib_ob_separator
             )
-            previous_surface = surface
-        self.regions = regions
 
-        #surf_list = list(self.surfaces.keys())
-        #for inner_surf, outer_surf in zip(surf_list[0:-1], surf_list[1:]):
-        #    regions[outer_surf] = (
-         #       -self.surfaces[outer_surf] & +self.surfaces[inner_surf]
-         #   )
-        #self.regions = regions
-        
-        #self.surf_list = surf_list
+            previous_surface =surface
+
+
+        regions["outboard"] = {}
+
+        previous_surface = self.surfaces["plasma_surface"]
+
+        for surface_name,surface in self.surfaces.items():
+
+            if surface_name == "plasma_surface":
+                continue
+
+            regions["outboard"][surface_name] = (
+              -surface
+              & +previous_surface
+              & +ib_ob_separator
+            )
+
+            previous_surface = surface
+
+        self.regions = regions
+       
     def build_cells(self):
         """
         Build OpenMC cells from the regions defined by the build dict
         """
         # build cells
         cell_dict = {}
+        self.cell_list = list(cell_dict.values())
         materials = set()
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
@@ -506,24 +530,22 @@ class ToroidalModel(object):
                 if layer_def["thickness"] == 0:
                     continue
                 cell_name=f"{side}_{layer}"
-                
-                material = None
-                if "material_name" in layer_def:
-                    material = self.get_material_by_name(
-                    layer_def["material_name"]
-                    )
+                material = layer_def.get("material")
+
                 cell_dict[cell_name] = openmc.Cell(
-                    region=self.regions[side][layer],
-                    name=cell_name,
-                    fill=material,
-                    )
-                materials.add(material)
-        materials.discard(None)
-        self.cell_list = list(cell_dict.values())
+                region=self.regions[side][layer],
+                name=cell_name,
+                fill=material,
+                        )
+        materials = {}
+        material = layer_def.get("material")
+
+        if material is not None:
+            materials[material.id] = material
+        materials.discard(None)    
         self.cell_dict = cell_dict      
         self.materials = materials
-
-
+    
     def get_bounded_geometry(self):
         """
         Get an OpenMC geometry instances containing all cells, plus a bounding
@@ -572,51 +594,12 @@ class ToroidalModel(object):
         model = openmc.Model(geometry=self.geometry, materials=self.materials, tallies=self.tallies)
         return model, self.cell_dict
 
-def validate_build(data):
-    """Ensures the parsed yaml has the required inboard and outboard keys."""
-    if not isinstance(data, dict):
-        raise ValueError("Invalid YAML format: Expected a dictionary.")
-    
 
-    required_sections = ['inboard', 'outboard']
-    for section in required_sections:
-        if section not in data:
-            raise KeyError(f"Missing required section'{section}'"
-                           )
-        if not isinstance(data[section], dict) or len(data[section]) == 0:
-            raise ValueError(f"The '{section}' section must contain a non-empty list of components.")
-        #for layer in ["FWB", "shield", "breeder"]:
-        #    if layer not in data[section]:
-        #        raise KeyError(
-        #        f"Missing  layer '{layer}' in section"
-         #       )
-         #   if "thickness" not in data[section][layer]:
-         #     raise KeyError(f"Missing thickness in {section}/{layer}")
-         #   if "material" not in data[section][layer]:
-         #     raise KeyError(f"Missing material in {section}/{layer}")  
-    return True
-def _builds(data):
-
-    Build= {
-        "inboard": {},
-        "outboard": {}
-    }
-    for side in ["inboard", "outboard"]:
-        for name, info in data[side].items():
-            if not isinstance(info, dict):
-                continue
-            if thickness not in info:
-                continue
-            Build[side][name] = info   
-    
-    return Build
-     #   "inboard": [
-     #       (name, info["thickness"])
-     #       for name, info in data["inboard"].items()
-     #   ],
-     #   "outboard": [
-     #       (name, info["thickness"])
-     #       for name, info in data["outboard"].items()
+def parse_args():
+    """Parser for running as a script"""
+    parser = argparse.ArgumentParser(prog="plot_radial_build")
+    parser.add_argument("filename", help="YAML file defining radial build")
+    return parser.parse_args()
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
@@ -626,12 +609,55 @@ def read_yaml(filename):
     return data
 
 
-def parse_args():
-    """Parser for running as a script"""
-    parser = argparse.ArgumentParser(prog="plot_radial_build")
-    parser.add_argument("filename", help="YAML file defining radial build")
-    return parser.parse_args()
+def _builds(data):
 
+    build= {
+        "inboard": {},
+        "outboard": {}
+    }
+    for layer,layer_data in data["layers"].items():
+        material = layer_data["material_name"]
+    #if material is different from IB/OB
+    if isinstance(material, dict):
+        ib_material = material["inboard"]
+        ob_material = material["outboard"]
+    else:
+        ib_material = material
+        ob_material = material
+    build["inboard"][layer] = {
+        "thickness": layer_data["thickness"]["inboard"],
+        "material_name": ib_material,
+    }
+    build["outboard"][layer] = {
+        "thickness": layer_data["thickness"]["outboard"],
+        "material_name": ob_material,
+    }   
+    return build
+    
+
+def validate_build(data):
+    """Ensures the parsed yaml has the required inboard and outboard keys."""
+    if not isinstance(data, dict):
+        raise ValueError("Invalid YAML format: Expected a dictionary.")
+    
+    if "layers" not in data:
+        raise KeyError(
+            "Missing required 'layer'")    
+    
+    for layer,layer_data in data['layers'].items():
+        if not isinstance(layer_data, dict):
+            raise ValueError(f"Layer '{layer}' must be a dictionary.")
+        if "thickness" not in layer_data:
+            raise KeyError(f"Missing thickness in layer '{layer}'")
+        
+        thickness = layer_data["thickness"]
+        if "inboard" not in thickness:
+            raise KeyError(f"Missing inboard thickness in layer '{layer}'")
+        if "outboard" not in thickness:
+            raise KeyError(f"Missing outboard thickness in layer '{layer}'")
+
+     
+    return True
 def main():
     #print("Entere main")
     args = parse_args()
@@ -639,24 +665,31 @@ def main():
     data = read_yaml(args.filename)
     print("Data loaded:")
     print(data)
-    
-    validate_build(data)   
-    
+    validate_build(data)  
+    build = _builds(data)
 
-    build = _builds(data)    
     total_build = {
-        "inboard": sum(layer[1] for layer in build["inboard"]),
-        "outboard": sum(layer[1] for layer in build["outboard"])
-                  }
-    
-    ib_total = total_build["inboard"]
-    ob_total = total_build["outboard"]
+        "inboard": sum(
+            surface["thickness"] 
+            for surface in build["inboard"].values()
+            ),
 
+        "outboard": sum(
+            surface["thickness"] 
+            for surface in build["outboard"].values()
+            ),
+    }
+    
+    ib_total = sum(
+        surface["thickness"] 
+        for surface in build["inboard"].values()
+    )
+    ob_total = sum(
+        surface["thickness"] 
+        for surface in build["outboard"].values()
+    )
+    
     print(f"total inboard={ib_total}")
     print(f"total outboard={ob_total}")
-
 if __name__ == "__main__":
   main()
-
-
-        
