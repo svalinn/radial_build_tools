@@ -313,6 +313,7 @@ class ToroidalModel(object):
             object
     """
     
+    
     def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
         self.build = build
         # geometry dictionaries 
@@ -332,7 +333,16 @@ class ToroidalModel(object):
             self.input_materials = materials
         self.assign_materials()
 
+    def expand_ib_ob():
+        """
+        Ensure that every layer has both an inboard and outboard thickness
+        by duplicating single values.
+        """
 
+        for _ , layer_data in self.build.items():
+            if "thickness" in layer_data:
+                layer_data["inboard"] = layer_data["thickness"]
+                layer_data["outboard"] = layer_data["thickness"]
     
     
     def build_tallies(self):
@@ -350,10 +360,6 @@ class ToroidalModel(object):
                     tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)    
     
-    
-
-    
-    
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
@@ -364,10 +370,9 @@ class ToroidalModel(object):
                     layer_data["material_name"]
                 )
             else:
-                layer_data["material"] = None
+                layer_data["material"] = None    
+    
 
-    
-    
     def get_material_by_name(self, material_name):
         """
         Search the materials object for a material with a matching name. Openmc
@@ -406,12 +411,14 @@ class ToroidalModel(object):
             delta = (ob+ib)/2
             Rho += delta
             r += delta
+            # R is major radius, Rho is minor radius in xy plane, r is minor radius in z direction
             torus_parameters[layer]={
                 "major_rad":R,
                 "minor_rad_xy":Rho,
                 "minor_rad_z":r 
             }
         return torus_parameters
+
     def build_surfaces(self):
         
         """
@@ -457,7 +464,7 @@ class ToroidalModel(object):
                 c=params["minor_rad_xy"]
             )  
         self.surfaces=surfaces
-        def build_regions(self):
+    def build_regions(self):
         """
         Build OpenMC regions from the surfaces defined by the build dict
         """
@@ -537,11 +544,6 @@ class ToroidalModel(object):
         materials.discard(None)    
         self.cell_dict = cell_dict      
         self.materials = materials
-
-   
-
-    
-    
     
     def get_bounded_geometry(self):
         """
