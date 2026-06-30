@@ -330,6 +330,19 @@ class ToroidalModel(object):
 
         self.assign_materials()
 
+        self.expand_ib_ob()
+
+    def expand_ib_ob():
+        """
+        Ensure that every layer has both an inboard and outboard thickness
+        by duplicating single values.
+        """
+
+        for _ , layer_data in self.build.items():
+            if "thickness" in layer_data:
+                layer_data["inboard"] = layer_data["thickness"]
+                layer_data["outboard"] = layer_data["thickness"]
+
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
