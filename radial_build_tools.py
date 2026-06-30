@@ -390,8 +390,28 @@ class ToroidalModel(object):
         )
     
     
-    
-    
+    def torus_parameters_calculation(self):
+        torus_parameters = {}
+        R = self.major_rad
+        Rho = self.minor_rad_xy 
+        r = self.minor_rad_z
+        for layer,layer_data in self.build["inboard"].items():
+            if layer_data is None:
+                continue
+            thickness = layer_data["thickness"]
+        # Same thickness for all layers.
+            ib = thickness
+            ob = thickness
+            R += (ob-ib)/2
+            delta = (ob+ib)/2
+            Rho += delta
+            r += delta
+            torus_parameters[layer]={
+                "major_rad":R,
+                "minor_rad_xy":Rho,
+                "minor_rad_z":r 
+            }
+        return torus_parameters
     def build_surfaces(self):
         
         """
