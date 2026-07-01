@@ -1,6 +1,9 @@
 title: test_build
 
 inboard:
+  sol:
+    thickness: 15
+    material_name: RAFM 
   FWB:
     thickness: 2
     material_name=RAFM
@@ -17,6 +20,9 @@ inboard:
     thickness: 10
     material_name: RAFM
 outboard:
+  sol:
+    thickness: 15
+    material_name: Vaccum
   FWB:
     thickness: 5
     material_name: RAFM
