@@ -330,7 +330,7 @@ class ToroidalModel(object):
 
         self.assign_materials()
 
-        self.expand_ib_ob()
+        #self.expand_ib_ob()
 
     def expand_ib_ob():
         """
@@ -533,11 +533,9 @@ def read_yaml(filename):
 def main():
     args = parse_args()
     data = read_yaml(args.filename)
-
     rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
-
 
 if __name__ == "__main__":
     main()
