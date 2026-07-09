@@ -1,5 +1,5 @@
 import openmc
-from radial_build_tools import ToroidalModel, RadialBuildPlot
+from radial_build_tools import ToroidalModel, RadialBuildPlot, parse_args, read_yaml
 
 # torus parameters
 major_radius = 800
@@ -24,35 +24,19 @@ PbLi.add_element("Pb", 83.0, "ao")
 PbLi.add_element("Li", 17.0, "ao", enrichment=90.0, enrichment_target="Li6")
 PbLi.set_density("g/cm3", 9.806)
 
-materials = openmc.Materials([RAFM, PbLi, W])
+materials = openmc.Materials(
+    [
+        RAFM,
+        PbLi,
+        W,
+    ]
+)
 
-build = {
-    "sol": {
-        "thickness": 5,
-        "description": "Vacuum",
-    },
-    "FW": {
-        "thickness": 4,
-        "material_name": RAFM.name,
-        "description": RAFM.name,
-        "color": "#e0218a",
-    },
-    "Breeder": {
-        "thickness": 20,
-        "material_name": PbLi.name,
-        "description": PbLi.name,
-        "scores": ["flux", "H3-production"],
-    },
-    "bogus layer": {
-        "thickness": 0,
-        "description": "this layer will be skipped due to zero thickness",
-    },
-    "shield": {
-        "thickness": 20,
-        "material_name": W.name,
-        "description": W.name,
-    },
-}
+args = parse_args()
+data = read_yaml(args.filename)
+build = data
+
+build = {"inboard": data["inboard"], "outboard": data["outboard"]}
 
 toroidal_model = ToroidalModel(
     build,
