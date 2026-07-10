@@ -3,7 +3,7 @@ title: test_build
 inboard:
   sol:
     thickness: 15
-    material_name: RAFM
+    material_name: RAFM 
   FWB:
     thickness: 2
     material_name: RAFM
@@ -13,16 +13,13 @@ inboard:
   shield:
     thickness: 30
     material_name: RAFM
-  sol:
-    thickness: 15
-    material_name: RAFM
   bogus layer:
     thickness: 10
     material_name: RAFM
 outboard:
   sol:
     thickness: 15
-    material_name: Vaccum
+    material_name: RAFM
   FWB:
     thickness: 5
     material_name: RAFM
@@ -32,9 +29,6 @@ outboard:
   shield:
     thickness: 80
     material_name: RAFM
-  sol:
-    thickness: 15
-    material_name: Vaccum
   bogus layer:
     thickness: 10
     material_name: RAFM 
