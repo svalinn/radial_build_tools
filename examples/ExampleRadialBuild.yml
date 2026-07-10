@@ -83,7 +83,7 @@ size:
 - 10
 - 4.2
 unit: cm
-oputboard:
+outboard:
  sol:
     thickness: 8
     color: '#acc2d9'
