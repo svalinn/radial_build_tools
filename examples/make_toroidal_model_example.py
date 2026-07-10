@@ -46,9 +46,19 @@ toroidal_model = ToroidalModel(
     materials,
 )
 model, cells = toroidal_model.get_openmc_model()
+settings = openmc.Settings()
+
+settings.run_mode = "fixed source"      # or "eigenvalue" if appropriate
+settings.particles = 10000
+settings.batches = 2
+settings.inactive = 0                   # for fixed source runs
+
+model.settings = settings
 model.export_to_model_xml()
+
 
 # make a radial build plot of the model
 rbp = RadialBuildPlot(build, title="Toroidal Model Example", size=(4, 3))
 rbp.plot_radial_build()
 rbp.to_png()
+openmc.run()
