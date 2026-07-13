@@ -207,12 +207,9 @@ class RadialBuildPlot(object):
 
         total_thickness = 0
         for (name, layer), color in zip(self.build.items(), self.colors):
-
             if layer.get("thickness") == 0:
                 continue
-
             layer_str, visual_thickness = self.get_layer_string(name, layer)
-
             ax.add_patch(
                 Rectangle(
                     ll,
@@ -233,37 +230,28 @@ class RadialBuildPlot(object):
                 ha="center",
                 va="center",
             )
-
             ll[0] += float(visual_thickness)
-
             total_thickness += visual_thickness
-
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
         plt.title(self.title)
         self.figure = fig
-
     def to_png(self, filename=None):
         """
         Write the plot to a png file.
-
         Arguments:
             filename (str): Optional, file name to write the plot to. If None,
                 file name will be the same as the plot title
         """
         if filename is None:
             filename = self.title.replace(" ", "")
-
         self.figure.savefig(f"{filename}.png", dpi=200)
-
     @classmethod
     def from_parastell_build(cls, parastell_build_dict, phi, theta):
-
         # access the thickness values at given theta phi
         phi_list = parastell_build_dict["phi_list"]
         theta_list = parastell_build_dict["theta_list"]
         radial_build = parastell_build_dict["radial_build"]
-
         phi_index = np.where(phi_list == phi)[0]
         theta_index = np.where(theta_list == theta)[0]
         build = {}
@@ -275,12 +263,9 @@ class RadialBuildPlot(object):
                 "thickness": thickness,
                 "description": material,
             }
-
         radial_build = cls(build)
-
         return radial_build
-
-
+    
 class ToroidalModel(object):
     """
     An object that uses a radial build definition generate OpenMC models
@@ -321,11 +306,9 @@ class ToroidalModel(object):
             self.input_materials = openmc.Materials.from_xml(materials)
         else:
             self.input_materials = materials
-        
         self.assign_materials()
-        # print(build)
+        
         self.expand_ib_ob()
-
     def expand_ib_ob(self):
         """
         Ensure that every layer has both an inboard and outboard thickness
@@ -336,13 +319,12 @@ class ToroidalModel(object):
             if "thickness" in layer_data:
                 layer_data["inboard"] = layer_data["thickness"]
                 layer_data["outboard"] = layer_data["thickness"]
-
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
         """
         for side in ["inboard", "outboard"]:
-            print(self.build)
+          
             for layer_name, layer_data in self.build[side].items():
                 if "material_name" in layer_data:
                     layer_data["material"] = self.get_material_by_name(
@@ -353,11 +335,9 @@ class ToroidalModel(object):
         """
         Search the materials object for a material with a matching name. Openmc
         allows duplicate names, and names are not required, be advised.
-
         Arguments:
             materials (OpenMC Materials Object): material library to search
             material (string): name of material to be returned
-
         Returns:
             mat (OpenMC material object): material object with matching name
         """
@@ -369,48 +349,51 @@ class ToroidalModel(object):
         raise ValueError(f"no material name {material_name} was found in the library")
 
     def build_surfaces(self):
-        """
-        Build the surfaces representing the radial build using OpenMC CSG.
-        """
-        major_rad = self.major_rad
-        minor_rad_z = self.minor_rad_z
-        minor_rad_xy = self.minor_rad_xy
-        # build surfaces
         surfaces = {}
-
         surfaces["plasma_surface"] = openmc.ZTorus(
-            a=major_rad, b=minor_rad_z, c=minor_rad_xy
+            a=self.major_rad,
+            b=self.minor_rad_z,
+            c=self.minor_rad_xy
         )
-        for side in ["inboard", "outboard"]:
-            print(self.build[side].items())
-            for surface, surface_dict in self.build[side].items():
-                if surface_dict["thickness"] != 0:
-                    minor_rad_z += surface_dict["thickness"]
-                    minor_rad_xy += surface_dict["thickness"]
-                    surfaces[surface] = openmc.ZTorus(
-                        a=major_rad, b=minor_rad_z, c=minor_rad_xy
-                    )
-        self.surfaces = surfaces
+        # OUTBOARD growth
+        minor_z_ob = self.minor_rad_z
+        minor_xy_ob = self.minor_rad_xy
+        for name, layer in self.build["outboard"].items():
+            minor_z_ob += layer["thickness"]
+            minor_xy_ob += layer["thickness"]
 
+            surfaces[name] = openmc.ZTorus(
+                a=self.major_rad,
+                b=minor_z_ob,
+                c=minor_xy_ob
+            )
+        # INBOARD growth
+        minor_z_ib = self.minor_rad_z
+        minor_xy_ib = self.minor_rad_xy
+        for name, layer in self.build["inboard"].items():
+            minor_z_ib += layer["thickness"]
+            minor_xy_ib += layer["thickness"]
+
+            surfaces[name] = openmc.ZTorus(
+                a=self.major_rad,
+                b=minor_z_ib,
+                c=minor_xy_ib
+            )
+            self.surfaces = surfaces
     def build_regions(self):
         """
         Build OpenMC regions from the surfaces defined by the build dict
         """
         # build regions
         regions = {}
-
         regions["plasma"] = -self.surfaces["plasma_surface"]
-
         surf_list = list(self.surfaces.keys())
-
         for inner_surf, outer_surf in zip(surf_list[0:-1], surf_list[1:]):
             regions[outer_surf] = (
                 -self.surfaces[outer_surf] & +self.surfaces[inner_surf]
             )
-
         self.regions = regions
         self.surf_list = surf_list
-
     def build_cells(self):
         """
         Build OpenMC cells from the regions defined by the build dict
@@ -418,12 +401,9 @@ class ToroidalModel(object):
         # build cells
         cell_dict = {}
         materials = set()
-
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
-
-      
         for side in ["inboard", "outboard"]:
             for layer, layer_def in self.build[side].items():
                 if layer_def["thickness"] != 0:
@@ -433,20 +413,16 @@ class ToroidalModel(object):
                         fill=layer_def["material"],
                 )
                 materials.add(layer_def["material"])
-
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
-
     def get_bounded_geometry(self):
         """
         Get an OpenMC geometry instances containing all cells, plus a bounding
         vacuum cell
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
-
         bounding_box = unbounded_geometry.bounding_box
-
         vac_surf = openmc.Sphere(
             r=np.sum(
                 np.multiply(
@@ -457,15 +433,11 @@ class ToroidalModel(object):
             ** 0.5,
             boundary_type="vacuum",
         )
-
         vac_region = -vac_surf & +self.surfaces[self.surf_list[-1]]
         vac_cell = openmc.Cell(region=vac_region, name="vac_cell")
-
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
-
         self.geometry = openmc.Geometry(self.cell_list)
-
     def build_tallies(self):
         """
         Build cell tallies for each score given in build dictionary, if given
@@ -481,7 +453,7 @@ class ToroidalModel(object):
                         cell_tally.scores = [score]
                         tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
-
+        
     def build_openmc_model(self):
         """
         Builds openmc model using the build definition
@@ -491,12 +463,12 @@ class ToroidalModel(object):
         self.build_cells()
         self.get_bounded_geometry()
         self.build_tallies()
-
     def get_openmc_model(self):
+        
+        
         """
         Return toroidal model built using the build definition, contains
         geometry and material information
-
         Returns:
             model (openmc model): Model containing materials and geometry
                 from the build dict.
@@ -508,29 +480,21 @@ class ToroidalModel(object):
             geometry=self.geometry, materials=self.materials, tallies=self.tallies
         )
         return model, self.cell_dict
-
-
 def parse_args():
     """Parser for running as a script"""
     parser = argparse.ArgumentParser(prog="plot_radial_build")
-
     parser.add_argument("filename", help="YAML file defining radial build")
-
     return parser.parse_args()
-
-
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
         data = yaml.safe_load(file)
-
     return data
-
-
 def main():
     args = parse_args()
     data = read_yaml(args.filename)
     rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
-
+if __name__ == "__main__":
+    main()
