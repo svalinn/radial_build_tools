@@ -1,6 +1,9 @@
 import yaml
 import argparse
+import matplotlib
 import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+matplotlib.use("Agg")
 from matplotlib.patches import Rectangle
 import matplotlib.colors
 import numpy as np
@@ -10,34 +13,6 @@ import random
 
 
 class RadialBuildPlot(object):
-    """
-    Uses a radial build definition to generate radial build plots.
-
-    Parameters
-        build (dict): {"layer name": {
-                            "thickness": (float),
-                            "composition": {
-                                "material name": fraction (float)
-                                },
-                            "description": (str),
-                            "color": (str): Optional matplotlib color string 
-                                          or hex code to specify the layer's color.
-                    }
-                }
-            The dict corresponding to each "layer_name" key may be empty,
-            or have any combination of entries.
-    Optional attributes:
-        title (string): title for plot and filename to save to
-        colors (list of str): list of matplotlib color strings.
-            If specific colors are desired for each layer they can be added
-            here.
-        max_characters (float): maximum length of a line before wrapping the
-            text
-        max_thickness (float): maximum thickness of layer to display, useful
-            for reducing the total size of the figure.
-        size (iter of float): figure size, inches. (width, height)
-        unit (str): Unit of thickness values
-    """
 
     def __init__(self, build, **kwargs):
         self.build = build
@@ -81,6 +56,7 @@ class RadialBuildPlot(object):
         """
         colors = []
         for layer in self.build.values():
+            print(self.build.values())
             # Check for user-specified colors
             if "color" in layer:
                 color = layer["color"]
@@ -355,6 +331,31 @@ class ToroidalModel(object):
             else:
                 layer_data["material"] = None
 
+    def torus_parameters_calculation(self):
+        torus_parameters = {}
+        R = self.major_rad
+        Rho = self.minor_rad_xy 
+        r = self.minor_rad_z
+        for layer,layer_data in self.build["inboard"].items():
+            if layer_data is None:
+                continue
+            thickness = layer_data["thickness"]
+        # Same thickness for all layers.
+            ib = thickness
+            ob = thickness
+            R += (ob-ib)/2
+            delta = (ob+ib)/2
+            Rho += delta
+            r += delta
+
+            # R is major 
+            torus_parameters[layer]={
+                "major_rad":R,
+                "minor_rad_xy":Rho,
+                "minor_rad_z":r 
+            }
+        return torus_parameters
+
     def get_material_by_name(self, material_name):
         """
         Search the materials object for a material with a matching name. Openmc
@@ -534,9 +535,9 @@ def main():
     args = parse_args()
     data = read_yaml(args.filename)
 
-    rbp = RadialBuildPlot(**data)
-    rbp.plot_radial_build()
-    rbp.to_png()
+    #rbp = RadialBuildPlot(**data)
+    #rbp.plot_radial_build()
+    #rbp.to_png()
 
 
 if __name__ == "__main__":
