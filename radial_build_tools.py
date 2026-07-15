@@ -341,11 +341,20 @@ class ToroidalModel(object):
         Ensure that every layer has both an inboard and outboard thickness
         by duplicating single values.
         """
-
+        
         for _ , layer_data in self.build.items():
-            if "thickness" in layer_data:
-                layer_data["inboard"] = layer_data["thickness"]
-                layer_data["outboard"] = layer_data["thickness"]
+            if "thickness" not in layer_data:
+                continue
+            thickness = layer_data["thickness"] #this structure would account for the tuple style of ib/ob thicknesses, or a single value for both sides.
+        
+            if isinstance(thickness, (tuple, list)):
+                layer_data["inboard"] = thickness[0]
+                layer_data["outboard"] = thickness[1]
+
+            else:
+                layer_data["inboard"] = thickness
+                layer_data["outboard"] = thickness
+
 
     def assign_materials(self):
         """
@@ -395,15 +404,23 @@ class ToroidalModel(object):
         )
 
         for surface, surface_dict in self.build.items():
-            if surface_dict["thickness"] != 0:
-                minor_rad_z += surface_dict["thickness"]
-                minor_rad_xy += surface_dict["thickness"]
-                surfaces[surface] = openmc.ZTorus(
-                    a=major_rad, b=minor_rad_z, c=minor_rad_xy
-                )
+            ib = surface_dict["inboard"]
+            ob = surface_dict["outboard"]
 
-        self.surfaces = surfaces
+            if ib == 0 and ob == 0:
+                continue
+            major_rad += (ob - ib) / 2
 
+            delta = (ib + ob) / 2
+
+            minor_rad_z += delta
+            minor_rad_xy += delta
+
+            surfaces[surface] = openmc.ZTorus(
+                a=major_rad,
+                b=minor_rad_z,
+                c =minor_rad_xy,
+            )
     def build_regions(self):
         """
         Build OpenMC regions from the surfaces defined by the build dict
@@ -424,30 +441,6 @@ class ToroidalModel(object):
         self.surf_list = surf_list
     
     
-    def torus_parameters_calculation(self):
-        torus_parameters = {}
-        R = self.major_rad
-        Rho = self.minor_rad_xy 
-        r = self.minor_rad_z
-        for layer,layer_data in self.build["inboard"].items():
-            if layer_data is None:
-                continue
-            thickness = layer_data["thickness"]
-        # Same thickness for all layers.
-            ib = thickness
-            ob = thickness
-            R += (ob-ib)/2
-            delta = (ob+ib)/2
-            Rho += delta
-            r += delta
-
-            # R is major 
-            torus_parameters[layer]={
-                "major_rad":R,
-                "minor_rad_xy":Rho,
-                "minor_rad_z":r 
-            }
-        return torus_parameters
 
     def build_cells(self):
         """
