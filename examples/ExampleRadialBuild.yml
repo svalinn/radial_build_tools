@@ -23,45 +23,45 @@ build:
       HeT410P80: 0.2
     color: '#69d84f'
   manifolds:
-    thickness: [10,10],
+    thickness: 10 # If inboard and outboard are the same,just specify one value
     description: composition varies
     color: '#894585'
   HTS:
     description: Composition and thickness vary
-    thickness: [8,8]
+    thickness: 8
     color: '#d4ffff'
   gap_1:
     composition:
       Void: 1.0 
-    thickness: [8,8]
+    thickness: 8
     color: '#65ab7c'
   vv_front_plate:
-    thickness: [2,2]
+    thickness: 2  
     composition:
       SS316L: 1.0
     color: '#952e8f'
   vv_fill:
-    thickness: [6,6]
+    thickness: 6
     composition:
       SS316L: 0.6
       HeT410P80: 0.4
     color: '#fcfc81'
   vv_back_plate:
-    thickness: [2,2]
+    thickness: 2
     composition:
       SS316L: 1.0
     color: '#a5a391'
   gap_2:
-    thickness: [2,2]
+    thickness: 2
     composition:
       Void: 1.0
     color: '#388004'
   LTS:
     description: Composition and thickness vary
-    thickness: [8,8]
+    thickness: 8
     color: '#e0218a'
   Thermal Insulator (Gap):
-    thickness: [10,10]
+    thickness: 10
     composition:
       Void: 1.0
     color: '#4c9085'
