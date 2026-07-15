@@ -2,8 +2,6 @@ import yaml
 import argparse
 import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-matplotlib.use("Agg")
 from matplotlib.patches import Rectangle
 import matplotlib.colors
 import numpy as np
@@ -330,10 +328,7 @@ class ToroidalModel(object):
             self.input_materials = openmc.Materials.from_xml(materials)
         else:
             self.input_materials = materials
-
-
         self.assign_materials()
-        self.trous_parameters = self.torus_parameters_calculation()
         self.expand_ib_ob()
 
     def expand_ib_ob():
