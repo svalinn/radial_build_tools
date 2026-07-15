@@ -1,9 +1,6 @@
 import yaml
 import argparse
-import matplotlib
 import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-matplotlib.use("Agg")
 from matplotlib.patches import Rectangle
 import matplotlib.colors
 import numpy as np
@@ -331,9 +328,8 @@ class ToroidalModel(object):
         else:
             self.input_materials = materials
 
-
         self.assign_materials()
-        self.trous_parameters = self.torus_parameters_calculation()
+
         self.expand_ib_ob()
 
     def expand_ib_ob():
@@ -357,7 +353,7 @@ class ToroidalModel(object):
                     layer_data["material_name"]
                 )
             else:
-                layer_data["material"] = None           
+                layer_data["material"] = None
 
     def get_material_by_name(self, material_name):
         """
@@ -422,32 +418,6 @@ class ToroidalModel(object):
 
         self.regions = regions
         self.surf_list = surf_list
-    
-    
-    def torus_parameters_calculation(self):
-        torus_parameters = {}
-        R = self.major_rad
-        Rho = self.minor_rad_xy 
-        r = self.minor_rad_z
-        for layer,layer_data in self.build["inboard"].items():
-            if layer_data is None:
-                continue
-            thickness = layer_data["thickness"]
-        # Same thickness for all layers.
-            ib = thickness
-            ob = thickness
-            R += (ob-ib)/2
-            delta = (ob+ib)/2
-            Rho += delta
-            r += delta
-
-            # R is major 
-            torus_parameters[layer]={
-                "major_rad":R,
-                "minor_rad_xy":Rho,
-                "minor_rad_z":r 
-            }
-        return torus_parameters
 
     def build_cells(self):
         """
@@ -460,9 +430,10 @@ class ToroidalModel(object):
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
+
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
-                    cell_dict[layer] = openmc.Cell(
+                cell_dict[layer] = openmc.Cell(
                     region=self.regions[layer],
                     name=layer,
                     fill=layer_def["material"],
