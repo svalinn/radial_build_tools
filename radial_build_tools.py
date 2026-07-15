@@ -197,49 +197,83 @@ class RadialBuildPlot(object):
         height = char_to_height * self.max_characters
 
         # initialize list for lower left corner of each layer rectangle
-        ll = [0, 0]
-        fig = plt.figure(figsize=self.size)
-        plt.tight_layout()
-        ax = plt.gca()
-        ax.set_ylim(0, height + 1)
+        # ll = [0, 0]
+        # fig = plt.figure(figsize=self.size)
+        # plt.tight_layout()
+        # ax = plt.gca()
+        # ax.set_ylim(0, height + 1)
 
-        total_thickness = 0
-        for (name, layer), color in zip(self.build.items(), self.colors):
+        # total_thickness = 0
+        # for (name, layer), color in zip(self.build.items(), self.colors):
 
-            if layer.get("thickness") == 0:
-                continue
+        #     if layer.get("thickness") == 0:
+        #         continue
 
-            layer_str, visual_thickness = self.get_layer_string(name, layer)
+        #     layer_str, visual_thickness = self.get_layer_string(name, layer)
 
-            ax.add_patch(
-                Rectangle(
-                    ll,
-                    visual_thickness,
-                    height,
-                    facecolor=color,
-                    edgecolor="black",
-                )
+        #     ax.add_patch(
+        #         Rectangle(
+        #             ll,
+        #             visual_thickness,
+        #             height,
+        #             facecolor=color,
+        #             edgecolor="black",
+        #         )
+        #     )
+
+        #     centerx = ll[0] + visual_thickness / 2 + 1
+        #     centery = height / 2
+        #     plt.text(
+        #         centerx,
+        #         centery,
+        #         layer_str,
+        #         rotation="vertical",
+        #         ha="center",
+        #         va="center",
+        #     )
+
+        #     ll[0] += float(visual_thickness)
+
+        #     total_thickness += visual_thickness
+
+        # ax.set_xlim(-1, total_thickness + 1)
+        # ax.set_axis_off()
+        # plt.title(self.title)
+        # self.figure = fig
+        
+        fig, axes = plt.subplots(
+            2,
+            1,
+            figsize=self.size
             )
 
-            centerx = ll[0] + visual_thickness / 2 + 1
-            centery = height / 2
-            plt.text(
-                centerx,
-                centery,
-                layer_str,
-                rotation="vertical",
-                ha="center",
-                va="center",
+        self.plot_side(
+            axes[0],
+            side="inboard",
+            reverse=True
             )
 
-            ll[0] += float(visual_thickness)
+        self.plot_side(
+            axes[1],
+            side="outboard",
+            reverse=False
+            )
 
-            total_thickness += visual_thickness
-
-        ax.set_xlim(-1, total_thickness + 1)
-        ax.set_axis_off()
-        plt.title(self.title)
         self.figure = fig
+
+    def plot_side(self, ax, side, reverse=False):
+
+        layers = self.build.items()
+
+        if reverse:
+            layers = reversed(list(layers))
+
+        for (name, layer), color in zip(layers, self.colors):
+
+            thickness = self.get_thickness(
+                layer,
+                side
+            )
 
     def to_png(self, filename=None):
         """
