@@ -406,6 +406,7 @@ class ToroidalModel(object):
         """
         # build regions
         regions = {}
+
         regions["plasma"] = -self.surfaces["plasma_surface"]
         surf_list = list(self.surfaces.keys())
 
@@ -413,6 +414,7 @@ class ToroidalModel(object):
             regions[outer_surf] = (
                 -self.surfaces[outer_surf] & +self.surfaces[inner_surf]
             )
+
         self.regions = regions
         self.surf_list = surf_list
 
@@ -447,6 +449,7 @@ class ToroidalModel(object):
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
         bounding_box = unbounded_geometry.bounding_box
+
         vac_surf = openmc.Sphere(
             r=np.sum(
                 np.multiply(
@@ -507,13 +510,13 @@ class ToroidalModel(object):
         )
         return model, self.cell_dict
 
-
 def parse_args():
     """Parser for running as a script"""
     parser = argparse.ArgumentParser(prog="plot_radial_build")
-    parser.add_argument("filename", help="YAML file defining radial build")
-    return parser.parse_args()
 
+    parser.add_argument("filename", help="YAML file defining radial build")
+
+    return parser.parse_args()
 
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
@@ -521,10 +524,10 @@ def read_yaml(filename):
         data = yaml.safe_load(file)
     return data
 
-
 def main():
     args = parse_args()
     data = read_yaml(args.filename)
+
     rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
