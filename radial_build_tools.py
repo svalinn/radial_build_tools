@@ -20,7 +20,7 @@ class RadialBuildPlot(object):
                                 "material name": fraction (float)
                                 },
                             "description": (str),
-                            "color": (str): Optional matplotlib color string 
+                            "color": (str): Optional matplotlib color string
                                           or hex code to specify the layer's color.
                     }
                 }
@@ -92,7 +92,7 @@ class RadialBuildPlot(object):
                 layer["color"] = color  # Store the color in the layer
 
             colors.append(color)  # Add the color to the list for this layer
-        
+
         return colors
 
     def generate_unique_color(self):
@@ -104,7 +104,7 @@ class RadialBuildPlot(object):
         self.available_colors.remove(color)  # Remove chosen color
         self.used_colors.add(color)  # Add to used colors
         return color
-    
+
     def build_composition_string(self, composition):
         """
         Assembles string from composition dict for use in radial build plot
@@ -121,8 +121,7 @@ class RadialBuildPlot(object):
         ]
 
         comp_string = (
-            textwrap.fill(", ".join(mat_strings), width=self.max_characters)
-            + "\n"
+            textwrap.fill(", ".join(mat_strings), width=self.max_characters) + "\n"
         )
 
         return comp_string
@@ -142,10 +141,7 @@ class RadialBuildPlot(object):
         filename = self.title.replace(" ", "") + ".yml"
 
         with open(filename, "w") as file:
-            yaml.safe_dump(
-                data_dict, file, default_flow_style=False, sort_keys=False
-            )
-
+            yaml.safe_dump(data_dict, file, default_flow_style=False, sort_keys=False)
 
     def get_layer_string(self, name, layer):
         """
@@ -184,9 +180,7 @@ class RadialBuildPlot(object):
 
         min_thickness = (newlines + 1) * min_line_height
 
-        visual_thickness = min(
-            max(visual_thickness, min_thickness), self.max_thickness
-        )
+        visual_thickness = min(max(visual_thickness, min_thickness), self.max_thickness)
 
         return text, visual_thickness
 
@@ -273,9 +267,7 @@ class RadialBuildPlot(object):
         build = {}
         # build the dictionary for plotting
         for layer_name, layer in radial_build.items():
-            thickness = float(
-                layer["thickness_matrix"][phi_index, theta_index][0]
-            )
+            thickness = float(layer["thickness_matrix"][phi_index, theta_index][0])
             material = layer["h5m_tag"]
             build[layer_name] = {
                 "thickness": thickness,
@@ -302,7 +294,7 @@ class ToroidalModel(object):
                                 associated OpenMC material library. To have a
                                 layer with vacuum/void do not include the
                                 'material_name' key.
-                            "color": (str): Optional matplotlib color string 
+                            "color": (str): Optional matplotlib color string
                                           or hex code to specify the layer's color.
                     }
                 }
@@ -335,8 +327,8 @@ class ToroidalModel(object):
         Ensure that every layer has both an inboard and outboard thickness
         by duplicating single values.
         """
-        
-        for _ , layer_data in self.build.items():
+
+        for _, layer_data in self.build.items():
             if "thickness" in layer_data:
                 layer_data["inboard"] = layer_data["thickness"]
                 layer_data["outboard"] = layer_data["thickness"]
@@ -351,7 +343,8 @@ class ToroidalModel(object):
                     layer_data["material_name"]
                 )
             else:
-                layer_data["material"] = None           
+                layer_data["material"] = None
+
     def get_material_by_name(self, material_name):
         """
         Search the materials object for a material with a matching name. Openmc
@@ -368,9 +361,8 @@ class ToroidalModel(object):
                 return mat
         # if this returns none, openmc will just assign vacuum to any cell
         # using this material
-        raise ValueError(
-            f"no material name {material_name} was found in the library"
-        )
+        raise ValueError(f"no material name {material_name} was found in the library")
+
     def build_surfaces(self):
         """
         Build the surfaces representing the radial build using OpenMC CSG.
@@ -396,8 +388,9 @@ class ToroidalModel(object):
             surfaces[surface] = openmc.ZTorus(
                 a=major_rad,
                 b=minor_rad_z,
-                c =minor_rad_xy,
+                c=minor_rad_xy,
             )
+
     def build_regions(self):
         """
         Build OpenMC regions from the surfaces defined by the build dict
@@ -416,6 +409,7 @@ class ToroidalModel(object):
 
         self.regions = regions
         self.surf_list = surf_list
+
     def build_cells(self):
         """
         Build OpenMC cells from the regions defined by the build dict
@@ -437,6 +431,7 @@ class ToroidalModel(object):
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
+
     def get_bounded_geometry(self):
         """
         Get an OpenMC geometry instances containing all cells, plus a bounding
@@ -459,20 +454,22 @@ class ToroidalModel(object):
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
         self.geometry = openmc.Geometry(self.cell_list)
+
     def build_tallies(self):
         """
         Build cell tallies for each score given in build dictionary, if given
         """
-        tally_list=[]
+        tally_list = []
         for layer, layer_dict in self.build.items():
             if "scores" in layer_dict.keys():
                 for score in layer_dict["scores"]:
                     cell_filter = openmc.CellFilter(self.cell_dict[layer])
-                    cell_tally = openmc.Tally(name = f"{layer} {score}")
+                    cell_tally = openmc.Tally(name=f"{layer} {score}")
                     cell_tally.filters = [cell_filter]
                     cell_tally.scores = [score]
                     tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
+
     def build_openmc_model(self):
         """
         Builds openmc model using the build definition
@@ -495,9 +492,11 @@ class ToroidalModel(object):
                 the model object returned by this function.
         """
         self.build_openmc_model()
-        model = openmc.Model(geometry=self.geometry, materials=self.materials, tallies=self.tallies)
+        model = openmc.Model(
+            geometry=self.geometry, materials=self.materials, tallies=self.tallies
+        )
         return model, self.cell_dict
-    
+
 
 def parse_args():
     """Parser for running as a script"""
