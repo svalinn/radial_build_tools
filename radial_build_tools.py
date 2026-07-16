@@ -353,7 +353,6 @@ class ToroidalModel(object):
                 )
             else:
                 layer_data["material"] = None           
-
     def get_material_by_name(self, material_name):
         """
         Search the materials object for a material with a matching name. Openmc
@@ -362,7 +361,6 @@ class ToroidalModel(object):
         Arguments:
             materials (OpenMC Materials Object): material library to search
             material (string): name of material to be returned
-
         Returns:
             mat (OpenMC material object): material object with matching name
         """
@@ -374,7 +372,6 @@ class ToroidalModel(object):
         raise ValueError(
             f"no material name {material_name} was found in the library"
         )
-
     def build_surfaces(self):
         """
         Build the surfaces representing the radial build using OpenMC CSG.
@@ -388,20 +385,15 @@ class ToroidalModel(object):
         surfaces["plasma_surface"] = openmc.ZTorus(
             a=major_rad, b=minor_rad_z, c=minor_rad_xy
         )
-
         for surface, surface_dict in self.build.items():
             ib = surface_dict["inboard"]
             ob = surface_dict["outboard"]
-
             if ib == 0 and ob == 0:
                 continue
             major_rad += (ob - ib) / 2
-
             delta = (ib + ob) / 2
-
             minor_rad_z += delta
             minor_rad_xy += delta
-
             surfaces[surface] = openmc.ZTorus(
                 a=major_rad,
                 b=minor_rad_z,
@@ -425,9 +417,6 @@ class ToroidalModel(object):
 
         self.regions = regions
         self.surf_list = surf_list
-    
-    
-
     def build_cells(self):
         """
         Build OpenMC cells from the regions defined by the build dict
@@ -435,7 +424,6 @@ class ToroidalModel(object):
         # build cells
         cell_dict = {}
         materials = set()
-
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
@@ -447,20 +435,16 @@ class ToroidalModel(object):
                 fill=layer_def["material"],
                 )
             materials.add(layer_def["material"])
-
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
-
     def get_bounded_geometry(self):
         """
         Get an OpenMC geometry instances containing all cells, plus a bounding
         vacuum cell
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
-
         bounding_box = unbounded_geometry.bounding_box
-
         vac_surf = openmc.Sphere(
             r=np.sum(
                 np.multiply(
@@ -471,15 +455,11 @@ class ToroidalModel(object):
             ** 0.5,
             boundary_type="vacuum",
         )
-
         vac_region = -vac_surf & +self.surfaces[self.surf_list[-1]]
         vac_cell = openmc.Cell(region=vac_region, name="vac_cell")
-
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
-
         self.geometry = openmc.Geometry(self.cell_list)
-
     def build_tallies(self):
         """
         Build cell tallies for each score given in build dictionary, if given
@@ -494,7 +474,6 @@ class ToroidalModel(object):
                     cell_tally.scores = [score]
                     tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
-
     def build_openmc_model(self):
         """
         Builds openmc model using the build definition
