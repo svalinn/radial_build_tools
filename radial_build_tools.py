@@ -338,18 +338,9 @@ class ToroidalModel(object):
         """
         
         for _ , layer_data in self.build.items():
-            if "thickness" not in layer_data:
-                continue
-            thickness = layer_data["thickness"] #this structure would account for the tuple style of ib/ob thicknesses, or a single value for both sides.
-        
-            if isinstance(thickness, (tuple, list)):
-                layer_data["inboard"] = thickness[0]
-                layer_data["outboard"] = thickness[1]
-
-            else:
-                layer_data["inboard"] = thickness
-                layer_data["outboard"] = thickness
-
+            if "thickness" in layer_data:
+                layer_data["inboard"] = layer_data["thickness"]
+                layer_data["outboard"] = layer_data["thickness"]
 
     def assign_materials(self):
         """
@@ -358,7 +349,7 @@ class ToroidalModel(object):
         for layer_name, layer_data in self.build.items():
             if "material_name" in layer_data:
                 layer_data["material"] = self.get_material_by_name(
-                    layer_data["material_name"]
+                layer_data["material_name"]
                 )
             else:
                 layer_data["material"] = None           
@@ -450,12 +441,12 @@ class ToroidalModel(object):
         )
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
-                    cell_dict[layer] = openmc.Cell(
-                    region=self.regions[layer],
-                    name=layer,
-                    fill=layer_def["material"],
+                cell_dict[layer] = openmc.Cell(
+                region=self.regions[layer],
+                name=layer,
+                fill=layer_def["material"],
                 )
-                materials.add(layer_def["material"])
+            materials.add(layer_def["material"])
 
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
