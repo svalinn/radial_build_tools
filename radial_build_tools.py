@@ -309,16 +309,15 @@ class ToroidalModel(object):
         """
 
         for _ , layer_data in self.build.items():
-            if "thickness" not in layer_data:
-                continue
-
-            thickness = layer_data["thickness"] #this structure would account for the tuple style of ib/ob thicknesses, or a single value for both sides.
-            if isinstance(thickness, (tuple, list)):
-                layer_data["inboard"] = thickness[0]
-                layer_data["outboard"] = thickness[1]
-            else:
-                layer_data["inboard"] = thickness
-                layer_data["outboard"] = thickness
+            if "thickness" in layer_data:
+                thickness = layer_data["thickness"]
+                
+                if isinstance(thickness, (tuple, list)):
+                    layer_data["inboard"] = thickness[0]
+                    layer_data["outboard"] = thickness[1]
+                else:
+                    layer_data["inboard"] = thickness
+                    layer_data["outboard"] = thickness
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
