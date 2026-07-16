@@ -348,7 +348,7 @@ class ToroidalModel(object):
         for layer_name, layer_data in self.build.items():
             if "material_name" in layer_data:
                 layer_data["material"] = self.get_material_by_name(
-                layer_data["material_name"]
+                    layer_data["material_name"]
                 )
             else:
                 layer_data["material"] = None           
@@ -429,9 +429,9 @@ class ToroidalModel(object):
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
                 cell_dict[layer] = openmc.Cell(
-                region=self.regions[layer],
-                name=layer,
-                fill=layer_def["material"],
+                    region=self.regions[layer],
+                    name=layer,
+                    fill=layer_def["material"],
                 )
             materials.add(layer_def["material"])
         self.cell_list = list(cell_dict.values())
