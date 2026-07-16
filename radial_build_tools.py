@@ -319,9 +319,8 @@ class ToroidalModel(object):
             self.input_materials = openmc.Materials.from_xml(materials)
         else:
             self.input_materials = materials
-
+        
         self.assign_materials()
-
         self.expand_ib_ob()
 
     def expand_ib_ob():
@@ -355,7 +354,7 @@ class ToroidalModel(object):
         Arguments:
             materials (OpenMC Materials Object): material library to search
             material (string): name of material to be returned
-
+        
         Returns:
             mat (OpenMC material object): material object with matching name
         """
@@ -379,16 +378,21 @@ class ToroidalModel(object):
         surfaces["plasma_surface"] = openmc.ZTorus(
             a=major_rad, b=minor_rad_z, c=minor_rad_xy
         )
-
+        
         for surface, surface_dict in self.build.items():
-            if surface_dict["thickness"] != 0:
-                minor_rad_z += surface_dict["thickness"]
-                minor_rad_xy += surface_dict["thickness"]
-                surfaces[surface] = openmc.ZTorus(
-                    a=major_rad, b=minor_rad_z, c=minor_rad_xy
-                )
-
-        self.surfaces = surfaces
+            ib = surface_dict["inboard"]
+            ob = surface_dict["outboard"]
+            if ib == 0 and ob == 0:
+                continue
+            major_rad += (ob - ib) / 2
+            delta = (ib + ob) / 2
+            minor_rad_z += delta
+            minor_rad_xy += delta
+            surfaces[surface] = openmc.ZTorus(
+                a=major_rad,
+                b=minor_rad_z,
+                c=minor_rad_xy,
+            )
 
     def build_regions(self):
         """
@@ -416,11 +420,11 @@ class ToroidalModel(object):
         # build cells
         cell_dict = {}
         materials = set()
-
+        
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
-
+        
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
                 cell_dict[layer] = openmc.Cell(
@@ -428,8 +432,7 @@ class ToroidalModel(object):
                     name=layer,
                     fill=layer_def["material"],
                 )
-                materials.add(layer_def["material"])
-
+            materials.add(layer_def["material"])
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
@@ -440,7 +443,6 @@ class ToroidalModel(object):
         vacuum cell
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
-
         bounding_box = unbounded_geometry.bounding_box
 
         vac_surf = openmc.Sphere(
@@ -456,10 +458,9 @@ class ToroidalModel(object):
 
         vac_region = -vac_surf & +self.surfaces[self.surf_list[-1]]
         vac_cell = openmc.Cell(region=vac_region, name="vac_cell")
-
+        
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
-
         self.geometry = openmc.Geometry(self.cell_list)
 
     def build_tallies(self):
