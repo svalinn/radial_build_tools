@@ -319,7 +319,7 @@ class ToroidalModel(object):
             self.input_materials = openmc.Materials.from_xml(materials)
         else:
             self.input_materials = materials
-        
+
         self.assign_materials()
         self.expand_ib_ob()
 
@@ -329,16 +329,17 @@ class ToroidalModel(object):
         by duplicating single values.
         """
 
-        for _ , layer_data in self.build.items():
+        for _, layer_data in self.build.items():
             if "thickness" in layer_data:
                 thickness = layer_data["thickness"]
-                
+
                 if isinstance(thickness, (tuple, list)):
                     layer_data["inboard"] = thickness[0]
                     layer_data["outboard"] = thickness[1]
                 else:
                     layer_data["inboard"] = thickness
                     layer_data["outboard"] = thickness
+
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
@@ -359,7 +360,7 @@ class ToroidalModel(object):
         Arguments:
             materials (OpenMC Materials Object): material library to search
             material (string): name of material to be returned
-        
+
         Returns:
             mat (OpenMC material object): material object with matching name
         """
@@ -383,7 +384,7 @@ class ToroidalModel(object):
         surfaces["plasma_surface"] = openmc.ZTorus(
             a=major_rad, b=minor_rad_z, c=minor_rad_xy
         )
-        
+
         for surface, surface_dict in self.build.items():
             ib = surface_dict["inboard"]
             ob = surface_dict["outboard"]
@@ -414,6 +415,7 @@ class ToroidalModel(object):
             )
         self.regions = regions
         self.surf_list = surf_list
+
     def build_cells(self):
         """
         Build OpenMC cells from the regions defined by the build dict
@@ -421,11 +423,11 @@ class ToroidalModel(object):
         # build cells
         cell_dict = {}
         materials = set()
-        
+
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
-        
+
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
                 cell_dict[layer] = openmc.Cell(
@@ -437,6 +439,7 @@ class ToroidalModel(object):
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
+
     def get_bounded_geometry(self):
         """
         Get an OpenMC geometry instances containing all cells, plus a bounding
@@ -457,7 +460,7 @@ class ToroidalModel(object):
 
         vac_region = -vac_surf & +self.surfaces[self.surf_list[-1]]
         vac_cell = openmc.Cell(region=vac_region, name="vac_cell")
-        
+
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
         self.geometry = openmc.Geometry(self.cell_list)
@@ -510,16 +513,22 @@ def parse_args():
     parser = argparse.ArgumentParser(prog="plot_radial_build")
     parser.add_argument("filename", help="YAML file defining radial build")
     return parser.parse_args()
+
+
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
         data = yaml.safe_load(file)
     return data
+
+
 def main():
     args = parse_args()
     data = read_yaml(args.filename)
     rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
+
+
 if __name__ == "__main__":
     main()
