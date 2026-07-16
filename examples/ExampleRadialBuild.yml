@@ -1,28 +1,29 @@
+title: Example Radial Build
 build:
   sol:
-    thickness: 8
+    thickness: [8,9.2]
     color: '#acc2d9'
   FW_armor:
-    thickness: 0.2
+    thickness: [0.2,0.3]
     color: '#56ae57'
   FW:
-    thickness: 3.8
+    thickness: [3.8,4.5]
     composition:
       MF82H: 0.34
       HeT410P80: 0.66
     color: '#b2996e'
   breeder:
     description: Composition and thickness vary
-    thickness: 8
+    thickness: [8,10]
     color: '#a8ff04'
   BW:
-    thickness: 2
+    thickness: [2,3]
     composition:
       MF82H: 0.8
       HeT410P80: 0.2
     color: '#69d84f'
   manifolds:
-    thickness: 10
+    thickness: 10 # If inboard and outboard are the same,just specify one value
     description: composition varies
     color: '#894585'
   HTS:
@@ -31,11 +32,11 @@ build:
     color: '#d4ffff'
   gap_1:
     composition:
-      Void: 1.0
+      Void: 1.0 
     thickness: 8
     color: '#65ab7c'
   vv_front_plate:
-    thickness: 2
+    thickness: 2  
     composition:
       SS316L: 1.0
     color: '#952e8f'
@@ -65,7 +66,7 @@ build:
       Void: 1.0
     color: '#4c9085'
   Coil Pack:
-    thickness: 52.5
+    thickness: [52.5,52.5]
     composition:
       SS316L: 0.7435
       HTS TAPE: 0.0622
