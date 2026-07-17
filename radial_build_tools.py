@@ -3,6 +3,9 @@ import argparse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
+matplotlib.use("Agg")
+# This line was added to stop this error message being pooped up:
+# qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "
 import numpy as np
 import openmc
 import textwrap
@@ -183,97 +186,101 @@ class RadialBuildPlot(object):
         visual_thickness = min(max(visual_thickness, min_thickness), self.max_thickness)
 
         return text, visual_thickness
-
-    def plot_radial_build(self):
+    def plot_side(self, ax, side, reverse=False):
         """
-        Creates a radial build plot, with layers scaled between a minimum and
-        maximum pixel width to preserve readability.
-
-        Returns:
-            fig (matplotlib figure): figure containing radial build plot
+        Plot either the inboard or outboard radial build.
         """
 
         char_to_height = 1.15
         height = char_to_height * self.max_characters
 
-        # initialize list for lower left corner of each layer rectangle
-        # ll = [0, 0]
-        # fig = plt.figure(figsize=self.size)
-        # plt.tight_layout()
-        # ax = plt.gca()
-        # ax.set_ylim(0, height + 1)
+        ll = [0, 0]
+        ax.set_ylim(0, height + 1)
 
-        # total_thickness = 0
-        # for (name, layer), color in zip(self.build.items(), self.colors):
+        total_thickness = 0
 
-        #     if layer.get("thickness") == 0:
-        #         continue
+        layers = list(self.build.items())
+        colors = list(self.colors)
 
-        #     layer_str, visual_thickness = self.get_layer_string(name, layer)
+        if reverse:
+            layers.reverse()
+            colors.reverse()
 
-        #     ax.add_patch(
-        #         Rectangle(
-        #             ll,
-        #             visual_thickness,
-        #             height,
-        #             facecolor=color,
-        #             edgecolor="black",
-        #         )
-        #     )
+        for (name, layer), color in zip(layers, colors):
 
-        #     centerx = ll[0] + visual_thickness / 2 + 1
-        #     centery = height / 2
-        #     plt.text(
-        #         centerx,
-        #         centery,
-        #         layer_str,
-        #         rotation="vertical",
-        #         ha="center",
-        #         va="center",
-        #     )
+            thickness = layer["thickness"]
 
-        #     ll[0] += float(visual_thickness)
+            if isinstance(thickness, (list, tuple)):
+                if side == "inboard":
+                    thickness = thickness[0]
+                else:
+                    thickness = thickness[1]
+            if thickness == 0:
+                continue
 
-        #     total_thickness += visual_thickness
+            old = layer["thickness"]
+            layer["thickness"] = thickness
 
-        # ax.set_xlim(-1, total_thickness + 1)
-        # ax.set_axis_off()
-        # plt.title(self.title)
-        # self.figure = fig
-        
+            layer_str, visual_thickness = self.get_layer_string(name, layer)
+
+            layer["thickness"] = old
+
+            ax.add_patch(
+                Rectangle(
+                    ll,
+                    visual_thickness,
+                    height,
+                    facecolor=color,
+                    edgecolor="black",
+                )
+            )
+
+            centerx = ll[0] + visual_thickness / 2 + 1
+            centery = height / 2
+
+            ax.text(
+                centerx,
+                centery,
+                layer_str,
+                rotation="vertical",
+                ha="center",
+                va="center",
+            )
+
+            ll[0] += float(visual_thickness)
+            total_thickness += visual_thickness
+
+        ax.set_xlim(-1, total_thickness + 1)
+        ax.set_axis_off()
+        ax.set_title(side.capitalize())
+
+    def plot_radial_build(self):
+        """
+        Creates radial build plots for both the inboard and outboard sides.
+        """
+
         fig, axes = plt.subplots(
             2,
             1,
-            figsize=self.size
-            )
+            figsize=self.size,
+        )
 
         self.plot_side(
             axes[0],
             side="inboard",
-            reverse=True
-            )
+            reverse=True,
+        )
 
         self.plot_side(
             axes[1],
             side="outboard",
-            reverse=False
-            )
+            reverse=False,
+        )
+
+        fig.suptitle(self.title)
+        plt.tight_layout()
 
         self.figure = fig
-
-    def plot_side(self, ax, side, reverse=False):
-
-        layers = self.build.items()
-
-        if reverse:
-            layers = reversed(list(layers))
-
-        for (name, layer), color in zip(layers, self.colors):
-
-            thickness = self.get_thickness(
-                layer,
-                side
-            )
 
     def to_png(self, filename=None):
         """
@@ -374,6 +381,12 @@ class ToroidalModel(object):
                     layer_data["inboard"] = thickness
                     layer_data["outboard"] = thickness
 
+                if isinstance(thickness, (tuple, list)):
+                    layer_data["inboard"] = thickness[0]
+                    layer_data["outboard"] = thickness[1]
+                else:
+                    layer_data["inboard"] = thickness
+                    layer_data["outboard"] = thickness
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
