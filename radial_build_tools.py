@@ -3,6 +3,7 @@ import argparse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
+
 matplotlib.use("Agg")
 # This line was added to stop this error message being pooped up:
 # qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "
@@ -166,18 +167,10 @@ class RadialBuildPlot(object):
         comp_string = ""
         if "composition" in layer:
             comp_string = self.build_composition_string(layer["composition"])
+            if len(comp_string) > 18:
+                comp_string = comp_string[:15] + "..."
 
-        description_str = ""
-        if "description" in layer:
-            description_str = textwrap.fill(
-                f'{layer["description"]}',
-                self.max_characters,
-                drop_whitespace=False,
-            )
-
-        # ensure sensible line breaks, this is the simplest way I have
-        # found due to how the above fields can be combined
-        text = f"{name}{thickness_str}\n{comp_string}{description_str}".rstrip()
+        text = f"{name}{thickness_str}\n{comp_string}".rstrip()
 
         newlines = text.count("\n")
 
@@ -186,13 +179,14 @@ class RadialBuildPlot(object):
         visual_thickness = min(max(visual_thickness, min_thickness), self.max_thickness)
 
         return text, visual_thickness
+
     def plot_side(self, ax, side, reverse=False):
         """
         Plot either the inboard or outboard radial build.
         """
 
         char_to_height = 1.15
-        height = char_to_height * self.max_characters
+        height = char_to_height * self.max_characters *0.8
 
         ll = [0, 0]
         ax.set_ylim(0, height + 1)
@@ -234,25 +228,34 @@ class RadialBuildPlot(object):
                     edgecolor="black",
                 )
             )
-
-            centerx = ll[0] + visual_thickness / 2 + 1
-            centery = height / 2
-
-            ax.text(
-                centerx,
-                centery,
-                layer_str,
-                rotation="vertical",
-                ha="center",
-                va="center",
+            rect = Rectangle(
+                            ll,
+                            visual_thickness,
+                            height,
+                            facecolor=color,
+                            edgecolor="black",
             )
+
+
+            centerx = ll[0] + visual_thickness / 2 
+            centery = height / 2
+            # fontsize = max(5, min(9, visual_thickness / 2))
+            text = ax.text(
+                    centerx,
+                    centery,
+                    layer_str,
+                    rotation="vertical",
+                    ha="center",
+                    va="center",
+                    fontsize=5,
+            )
+            text.set_clip_path(rect)
 
             ll[0] += float(visual_thickness)
             total_thickness += visual_thickness
-
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
-        ax.set_title(side.capitalize())
+        ax.set_title(side.capitalize(),fontsize=2, pad=1)
 
     def plot_radial_build(self):
         """
@@ -262,7 +265,7 @@ class RadialBuildPlot(object):
         fig, axes = plt.subplots(
             2,
             1,
-            figsize=self.size,
+            figsize=(self.size[0],self.size[1]*0.45),
         )
 
         self.plot_side(
@@ -277,8 +280,12 @@ class RadialBuildPlot(object):
             reverse=False,
         )
 
-        fig.suptitle(self.title)
-        plt.tight_layout()
+        fig.suptitle(self.title,y=1)
+        plt.subplots_adjust(
+            hspace=0.12,
+            top=0.88,
+            bottom=0.06
+        )
 
         self.figure = fig
 
@@ -362,6 +369,7 @@ class ToroidalModel(object):
             self.input_materials = materials
 
         self.assign_materials()
+
         self.expand_ib_ob()
 
     def expand_ib_ob():
@@ -381,12 +389,6 @@ class ToroidalModel(object):
                     layer_data["inboard"] = thickness
                     layer_data["outboard"] = thickness
 
-                if isinstance(thickness, (tuple, list)):
-                    layer_data["inboard"] = thickness[0]
-                    layer_data["outboard"] = thickness[1]
-                else:
-                    layer_data["inboard"] = thickness
-                    layer_data["outboard"] = thickness
     def assign_materials(self):
         """
         Assign OpenMC material objects to each layer in the build dict
@@ -455,6 +457,7 @@ class ToroidalModel(object):
         regions = {}
 
         regions["plasma"] = -self.surfaces["plasma_surface"]
+
         surf_list = list(self.surfaces.keys())
 
         for inner_surf, outer_surf in zip(surf_list[0:-1], surf_list[1:]):
@@ -484,7 +487,8 @@ class ToroidalModel(object):
                     name=layer,
                     fill=layer_def["material"],
                 )
-            materials.add(layer_def["material"])
+                materials.add(layer_def["material"])
+
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
@@ -495,6 +499,7 @@ class ToroidalModel(object):
         vacuum cell
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
+
         bounding_box = unbounded_geometry.bounding_box
 
         vac_surf = openmc.Sphere(
@@ -513,6 +518,7 @@ class ToroidalModel(object):
 
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
+
         self.geometry = openmc.Geometry(self.cell_list)
 
     def build_tallies(self):
@@ -557,6 +563,7 @@ class ToroidalModel(object):
         )
         return model, self.cell_dict
 
+
 def parse_args():
     """Parser for running as a script"""
     parser = argparse.ArgumentParser(prog="plot_radial_build")
@@ -565,11 +572,14 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
         data = yaml.safe_load(file)
+
     return data
+
 
 def main():
     args = parse_args()
