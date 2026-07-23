@@ -76,7 +76,7 @@ build:
     description: '[combines winding pack and coil case]'
     color: '#5e9b8a'
 title: Example Radial Build
-max_characters: 40
+max_characters: 20
 max_thickness: 1000000.0
 size:
 - 10
