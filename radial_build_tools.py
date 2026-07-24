@@ -93,7 +93,7 @@ class RadialBuildPlot(object):
         self.available_colors = set(matplotlib.colors.XKCD_COLORS.values())
         self.colors = self.assign_colors()
 
-        self.width_scale = 5
+        self.width_scale = 10
 
     def assign_colors(self):
         """
@@ -193,15 +193,13 @@ class RadialBuildPlot(object):
         visual_thickness = min_line_height
 
         thickness_str = ""
-        if "thickness" in layer:
-            thickness = layer[side]
-            if side == "inboard":
-                thickness = layer["inboard"]
-        else:
-            thickness = layer["outboard"]
 
-            thickness_str = f': {layer["thickness"]} {self.unit}'
-            visual_thickness = thickness
+        if side == "inboard":
+                thickness =layer["inboard"]
+        else:
+            thickness =layer["outboard"]
+        thickness_str = f': {thickness} {self.unit}'
+        visual_thickness = thickness
 
         comp_string = ""
         if "composition" in layer:
@@ -232,7 +230,7 @@ class RadialBuildPlot(object):
         Plot either the inboard or outboard radial build.
         """
 
-        char_to_height = 1.15
+        char_to_height = 2.25
         height = char_to_height * self.max_characters
 
         ll = [0, 0]
@@ -280,7 +278,7 @@ class RadialBuildPlot(object):
                     rotation="vertical",
                     ha="center",
                     va="center",
-                    fontsize=4.5,
+                    fontsize=9,
             )
             text.set_clip_path(rect)
 
