@@ -11,6 +11,7 @@ import textwrap
 import random
 
 
+
 def expand_ib_ob(build):
     """
     Read a radial build dictionary and populate members "inboard" and "outboard"
@@ -92,6 +93,7 @@ class RadialBuildPlot(object):
 
 
 
+
     def assign_colors(self):
         """
         Assign colors to each layer in the build definition using a two-phase approach:
@@ -153,10 +155,11 @@ class RadialBuildPlot(object):
         ]
         comp_text = ", ".join(mat_strings)
 
-        comp_string = textwrap.fill(
-            comp_text,
-            width=self.max_characters,
-        ) + "\n"
+        comp_string = (textwrap.fill(comp_text,
+        width=self.max_characters,
+            )
+            + "\n"
+        )
 
         return comp_string
 
@@ -178,8 +181,18 @@ class RadialBuildPlot(object):
             yaml.safe_dump(data_dict, file, default_flow_style=False, sort_keys=False)
 
     def get_layer_string(self, name, layer, side=None):
+    def get_layer_string(self, name, layer, side=None):
         """
         Processes a layer in the radial build dict to get formatted text for
+        the plot.
+         Arguments:
+        name (str):
+            Name of the layer.
+        layer (dict):
+            Dictionary containing the layer definition.
+        side (str, optional):
+            Which side of the radial build to use when selecting the
+            thickness.
         the plot.
          Arguments:
         name (str):
@@ -197,14 +210,19 @@ class RadialBuildPlot(object):
         min_line_height = 5
 
 
+
         thickness_str = ""
         thickness = layer[side]
         thickness_str = f': {thickness} {self.unit}'
 
+        thickness= layer[side]
+        thickness_str = f": {thickness} {self.unit}"
+        visual_thickness = thickness
 
         comp_string = ""
         if "composition" in layer:
             comp_string = self.build_composition_string(layer["composition"])
+
 
         description_str = ""
         if "description" in layer:
@@ -212,6 +230,7 @@ class RadialBuildPlot(object):
                 f'{layer["description"]}',
                 self.max_characters,
                 drop_whitespace=False,
+            )
             )
 
         text = f"{name}{thickness_str}\n{comp_string}\n{description_str}".rstrip()
@@ -222,7 +241,12 @@ class RadialBuildPlot(object):
         
         visual_thickness = min(max(thickness, min_thickness), self.max_thickness) 
 
+        visual_thickness = (
+            min(max(visual_thickness, min_thickness), self.max_thickness)
+        )
+
         return text, visual_thickness
+
 
     def plot_side(self, ax, side, reverse=False):
         """
@@ -246,10 +270,14 @@ class RadialBuildPlot(object):
 
         for (name, layer), color in zip(layers, colors):
             thickness = layer[side]
+            thickness = layer[side]
             if thickness == 0:
                 continue
 
             layer_str, visual_thickness = self.get_layer_string(
+                name,
+                layer,
+                side,
                 name,
                 layer,
                 side,
@@ -387,6 +415,7 @@ class ToroidalModel(object):
 
     def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
         self.build = expand_ib_ob(build)
+        self.build = expand_ib_ob(build)
         self.major_rad = major_rad
         self.minor_rad_z = minor_rad_z
         self.minor_rad_xy = minor_rad_xy
@@ -495,6 +524,7 @@ class ToroidalModel(object):
                     name=layer,
                     fill=layer_def["material"],
                 )
+            materials.add(layer_def["material"])
             materials.add(layer_def["material"])
 
         self.cell_list = list(cell_dict.values())
