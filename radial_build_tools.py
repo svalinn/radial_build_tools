@@ -72,8 +72,7 @@ class RadialBuildPlot(object):
     """
 
     def __init__(self, build, **kwargs):
-        self.build = build
-        expand_ib_ob(self.build)
+        self.build = expand_ib_ob(build)
         self.title = "radial_build"
         self.max_characters = 20
         self.max_thickness = 1e6
@@ -203,7 +202,7 @@ class RadialBuildPlot(object):
         thickness_str = ""
         thickness =layer[side]
         thickness_str = f': {thickness} {self.unit}'
-        # visual_thickness = thickness
+
 
         comp_string = ""
         if "composition" in layer:
@@ -272,7 +271,8 @@ class RadialBuildPlot(object):
 
             centerx = ll[0] + visual_thickness / 2 + 1
             centery = height / 2
-            # fontsize = max(5, min(9, visual_thickness / 2))
+            font_size = min( 
+                max(visual_thickness /2,11),18)
             text = ax.text(
                     centerx,
                     centery,
@@ -280,7 +280,7 @@ class RadialBuildPlot(object):
                     rotation="vertical",
                     ha="center",
                     va="center",
-                    fontsize=12,
+                    fontsize=font_size,
             )
             text.set_clip_path(rect)
 
@@ -313,7 +313,7 @@ class RadialBuildPlot(object):
             reverse=False,
         )
 
-        fig.suptitle(self.title, y=1)
+        fig.suptitle(self.title, y=1,fontsize =26)
         plt.subplots_adjust(hspace=0.12, top=0.88, bottom=0.06)
 
         self.figure = fig
