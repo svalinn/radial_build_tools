@@ -200,7 +200,7 @@ class RadialBuildPlot(object):
 
 
         thickness_str = ""
-        thickness =layer[side]
+        thickness = layer[side]
         thickness_str = f': {thickness} {self.unit}'
 
 
