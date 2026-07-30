@@ -1,4 +1,5 @@
 title: Example Radial Build
+
 build:
   sol:
     thickness: [8,9.2]
@@ -14,7 +15,7 @@ build:
     color: '#b2996e'
   breeder:
     description: Composition and thickness vary
-    thickness: [8,10]
+    thickness: [5,30]
     color: '#a8ff04'
   BW:
     thickness: [2,3]
@@ -75,10 +76,9 @@ build:
       HeT410P80: 0.0288
     description: '[combines winding pack and coil case]'
     color: '#5e9b8a'
-title: Example Radial Build
-max_characters: 40
+max_characters: 20
 max_thickness: 1000000.0
 size:
-- 10
-- 4.2
+- 24
+- 12
 unit: cm

@@ -1,3 +1,5 @@
+import os 
+os.environ["MPLBACKEND"] = "Agg"
 import yaml
 import argparse
 import matplotlib.pyplot as plt
@@ -7,6 +9,34 @@ import numpy as np
 import openmc
 import textwrap
 import random
+
+
+def expand_ib_ob(build):
+    """
+    Read a radial build dictionary and populate members "inboard" and "outboard"
+    based on the values of the "thickness" member
+    parameters
+    build : dictionary formatted as a valid radial build
+
+    returns
+    =========
+    build : the same dictionary that now contains members "inboard" and "outboard"
+    """
+    for layer in build.values():
+
+        if "thickness" not in layer:
+            continue
+
+        thickness = layer["thickness"]
+
+        if isinstance(thickness, (tuple, list)):
+            layer["inboard"] = thickness[0]
+            layer["outboard"] = thickness[1]
+        else:
+            layer["inboard"] = thickness
+            layer["outboard"] = thickness
+
+    return build
 
 
 class RadialBuildPlot(object):
@@ -40,9 +70,9 @@ class RadialBuildPlot(object):
     """
 
     def __init__(self, build, **kwargs):
-        self.build = build
+        self.build = expand_ib_ob(build)
         self.title = "radial_build"
-        self.max_characters = 35
+        self.max_characters = 20
         self.max_thickness = 1e6
         self.size = (8, 4)
         self.unit = "cm"
@@ -59,6 +89,8 @@ class RadialBuildPlot(object):
         self.used_colors = set()
         self.available_colors = set(matplotlib.colors.XKCD_COLORS.values())
         self.colors = self.assign_colors()
+
+
 
     def assign_colors(self):
         """
@@ -119,10 +151,12 @@ class RadialBuildPlot(object):
         mat_strings = [
             f"{mat}: {round(frac*100,3)}%" for mat, frac in composition.items()
         ]
+        comp_text = ", ".join(mat_strings)
 
-        comp_string = (
-            textwrap.fill(", ".join(mat_strings), width=self.max_characters) + "\n"
-        )
+        comp_string = textwrap.fill(
+            comp_text,
+            width=self.max_characters,
+        ) + "\n"
 
         return comp_string
 
@@ -143,22 +177,30 @@ class RadialBuildPlot(object):
         with open(filename, "w") as file:
             yaml.safe_dump(data_dict, file, default_flow_style=False, sort_keys=False)
 
-    def get_layer_string(self, name, layer):
+    def get_layer_string(self, name, layer, side=None):
         """
         Processes a layer in the radial build dict to get formatted text for
-        the plot
+        the plot.
+         Arguments:
+        name (str):
+            Name of the layer.
+        layer (dict):
+            Dictionary containing the layer definition.
+        side (str, optional):
+            Which side of the radial build to use when selecting the
+            thickness.
 
         Returns:
             text (str): formatted text for layer
             visual_thickness (float): width of the rectangle for the layer
         """
-        min_line_height = 9
-        visual_thickness = min_line_height
+        min_line_height = 5
+
 
         thickness_str = ""
-        if "thickness" in layer:
-            thickness_str = f': {layer["thickness"]} {self.unit}'
-            visual_thickness = layer["thickness"]
+        thickness = layer[side]
+        thickness_str = f': {thickness} {self.unit}'
+
 
         comp_string = ""
         if "composition" in layer:
@@ -172,73 +214,106 @@ class RadialBuildPlot(object):
                 drop_whitespace=False,
             )
 
-        # ensure sensible line breaks, this is the simplest way I have
-        # found due to how the above fields can be combined
-        text = f"{name}{thickness_str}\n{comp_string}{description_str}".rstrip()
+        text = f"{name}{thickness_str}\n{comp_string}\n{description_str}".rstrip()
 
         newlines = text.count("\n")
 
         min_thickness = (newlines + 1) * min_line_height
-
-        visual_thickness = min(max(visual_thickness, min_thickness), self.max_thickness)
+        
+        visual_thickness = min(max(thickness, min_thickness), self.max_thickness) 
 
         return text, visual_thickness
 
-    def plot_radial_build(self):
+    def plot_side(self, ax, side, reverse=False):
         """
-        Creates a radial build plot, with layers scaled between a minimum and
-        maximum pixel width to preserve readability.
-
-        Returns:
-            fig (matplotlib figure): figure containing radial build plot
+        Plot either the inboard or outboard radial build.
         """
 
-        char_to_height = 1.15
+        char_to_height = 2.25
         height = char_to_height * self.max_characters
 
-        # initialize list for lower left corner of each layer rectangle
         ll = [0, 0]
-        fig = plt.figure(figsize=self.size)
-        plt.tight_layout()
-        ax = plt.gca()
         ax.set_ylim(0, height + 1)
 
         total_thickness = 0
-        for (name, layer), color in zip(self.build.items(), self.colors):
 
-            if layer.get("thickness") == 0:
+        layers = list(self.build.items())
+        colors = list(self.colors)
+
+        if reverse:
+            layers.reverse()
+            colors.reverse()
+
+        for (name, layer), color in zip(layers, colors):
+            thickness = layer[side]
+            if thickness == 0:
                 continue
 
-            layer_str, visual_thickness = self.get_layer_string(name, layer)
-
-            ax.add_patch(
-                Rectangle(
-                    ll,
-                    visual_thickness,
-                    height,
-                    facecolor=color,
-                    edgecolor="black",
-                )
+            layer_str, visual_thickness = self.get_layer_string(
+                name,
+                layer,
+                side,
             )
+
+            if visual_thickness == 0:
+                continue
+
+            rect = Rectangle(
+                ll,
+                visual_thickness,
+                height,
+                facecolor=color,
+                edgecolor="black",
+            )
+            ax.add_patch(rect)
 
             centerx = ll[0] + visual_thickness / 2 + 1
             centery = height / 2
-            plt.text(
-                centerx,
-                centery,
-                layer_str,
-                rotation="vertical",
-                ha="center",
-                va="center",
+            font_size = min( 
+                max(visual_thickness /2,11),18)
+            text = ax.text(
+                    centerx,
+                    centery,
+                    layer_str,
+                    rotation="vertical",
+                    ha="center",
+                    va="center",
+                    fontsize=font_size,
             )
+            text.set_clip_path(rect)
 
             ll[0] += float(visual_thickness)
-
             total_thickness += visual_thickness
-
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
-        plt.title(self.title)
+        ax.set_title(side.capitalize(), fontsize=2, pad=1)
+
+    def plot_radial_build(self):
+        """
+        Creates radial build plots for both the inboard and outboard sides.
+        """
+
+        fig, axes = plt.subplots(
+            2,
+            1,
+            figsize=(self.size[0], self.size[1]),
+        )
+
+        self.plot_side(
+            axes[0],
+            side="inboard",
+            reverse=True,
+        )
+
+        self.plot_side(
+            axes[1],
+            side="outboard",
+            reverse=False,
+        )
+
+        fig.suptitle(self.title, y=1,fontsize =26)
+        plt.subplots_adjust(hspace=0.12, top=0.88, bottom=0.06)
+
         self.figure = fig
 
     def to_png(self, filename=None):
@@ -311,7 +386,7 @@ class ToroidalModel(object):
     """
 
     def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
-        self.build = build
+        self.build = expand_ib_ob(build)
         self.major_rad = major_rad
         self.minor_rad_z = minor_rad_z
         self.minor_rad_xy = minor_rad_xy
@@ -321,24 +396,6 @@ class ToroidalModel(object):
             self.input_materials = materials
 
         self.assign_materials()
-        self.expand_ib_ob()
-
-    def expand_ib_ob():
-        """
-        Ensure that every layer has both an inboard and outboard thickness
-        by duplicating single values.
-        """
-
-        for _, layer_data in self.build.items():
-            if "thickness" in layer_data:
-                thickness = layer_data["thickness"]
-
-                if isinstance(thickness, (tuple, list)):
-                    layer_data["inboard"] = thickness[0]
-                    layer_data["outboard"] = thickness[1]
-                else:
-                    layer_data["inboard"] = thickness
-                    layer_data["outboard"] = thickness
 
     def assign_materials(self):
         """
@@ -408,6 +465,7 @@ class ToroidalModel(object):
         regions = {}
 
         regions["plasma"] = -self.surfaces["plasma_surface"]
+
         surf_list = list(self.surfaces.keys())
 
         for inner_surf, outer_surf in zip(surf_list[0:-1], surf_list[1:]):
@@ -438,6 +496,7 @@ class ToroidalModel(object):
                     fill=layer_def["material"],
                 )
             materials.add(layer_def["material"])
+
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
         self.materials = materials.discard(None)
@@ -448,6 +507,7 @@ class ToroidalModel(object):
         vacuum cell
         """
         unbounded_geometry = openmc.Geometry(self.cell_list)
+
         bounding_box = unbounded_geometry.bounding_box
 
         vac_surf = openmc.Sphere(
@@ -466,6 +526,7 @@ class ToroidalModel(object):
 
         self.cell_list.append(vac_cell)
         self.cell_dict["vac_cell"] = vac_cell
+
         self.geometry = openmc.Geometry(self.cell_list)
 
     def build_tallies(self):
@@ -510,6 +571,7 @@ class ToroidalModel(object):
         )
         return model, self.cell_dict
 
+
 def parse_args():
     """Parser for running as a script"""
     parser = argparse.ArgumentParser(prog="plot_radial_build")
@@ -518,11 +580,14 @@ def parse_args():
 
     return parser.parse_args()
 
+
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
         data = yaml.safe_load(file)
+
     return data
+
 
 def main():
     args = parse_args()
