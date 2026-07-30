@@ -1,12 +1,10 @@
+import os 
+os.environ["MPLBACKEND"] = "Agg"
 import yaml
 import argparse
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 import matplotlib.colors
-
-matplotlib.use("Agg")
-# This line was added to stop this error message being pooped up:
-# qt.qpa.plugin: Could not find the Qt platform plugin "wayland" in "
 import numpy as np
 import openmc
 import textwrap
@@ -272,7 +270,7 @@ class RadialBuildPlot(object):
             centerx = ll[0] + visual_thickness / 2 + 1
             centery = height / 2
             font_size = min( 
-                max(visual_thickness /2, 13),18)
+                max(visual_thickness /2,11),18)
             text = ax.text(
                     centerx,
                     centery,
