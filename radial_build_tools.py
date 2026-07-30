@@ -272,7 +272,7 @@ class RadialBuildPlot(object):
             centerx = ll[0] + visual_thickness / 2 + 1
             centery = height / 2
             font_size = min( 
-                max(visual_thickness /2,11),18)
+                max(visual_thickness /2, 13),18)
             text = ax.text(
                     centerx,
                     centery,
