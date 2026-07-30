@@ -14,7 +14,7 @@ build:
     color: '#b2996e'
   breeder:
     description: Composition and thickness vary
-    thickness: [8,10]
+    thickness: [5,30]
     color: '#a8ff04'
   BW:
     thickness: [2,3]
