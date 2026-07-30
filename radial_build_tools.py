@@ -1,5 +1,3 @@
-import os 
-os.environ["MPLBACKEND"] = "Agg"
 import yaml
 import argparse
 import matplotlib.pyplot as plt
