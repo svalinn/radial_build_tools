@@ -224,17 +224,11 @@ class RadialBuildPlot(object):
 
         return text, visual_thickness
 
-    def ib_ob_are_identical(self):
 
-        return all(
-            layer["inboard"] == layer["outboard"]
-            for layer in self.build.values()
-        )
     def plot_side(self, ax, side, reverse=False):
         """
         Plot either the inboard or outboard radial build.
         """
-
         char_to_height = 2.25
         height = char_to_height * self.max_characters
 
@@ -294,17 +288,23 @@ class RadialBuildPlot(object):
         ax.set_axis_off()
         ax.set_title(side.capitalize(), fontsize=2, pad=1)
 
+    def ib_ob_are_identical(self):
+
+        return all(
+            layer["inboard"] == layer["outboard"]
+            for layer in self.build.values()
+        )
+
     def plot_radial_build(self):
         """
         Creates radial build plots for both the inboard and outboard sides.
         """
-        if self.ib_ob_are_identical:
+        if self.ib_ob_are_identical():
             fig, ax = plt.subplots(
                 1,
                 1,
             figsize=(self.size[0], self.size[1] / 2),
             )
-
             self.plot_side(
                 ax,
                 side="inboard",
@@ -312,22 +312,22 @@ class RadialBuildPlot(object):
             )
         else:
             fig, axes = plt.subplots(
-            2,
-            1,
-            figsize=(self.size[0], self.size[1]),
+                2,
+                1,
+                figsize=(self.size[0], self.size[1]),
             )
 
             self.plot_side(
-            axes[0],
-            side="outboard",
-            reverse=True,
+                axes[0],
+                side="inboard",
+                reverse=True,
             )
 
             self.plot_side(
-            axes[1],
-            side="inboard",
-            reverse=False,
-            )
+                axes[1],
+                side="outboard",
+                reverse=False,
+                )
 
         fig.suptitle(self.title, y=1,fontsize =26)
         plt.subplots_adjust(hspace=0.12, top=0.88, bottom=0.06)
