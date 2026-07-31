@@ -1,5 +1,3 @@
-import os 
-os.environ["MPLBACKEND"] = "Agg"
 import yaml
 import argparse
 import matplotlib.pyplot as plt
@@ -9,7 +7,6 @@ import numpy as np
 import openmc
 import textwrap
 import random
-
 
 
 def expand_ib_ob(build):
@@ -93,7 +90,6 @@ class RadialBuildPlot(object):
 
 
 
-
     def assign_colors(self):
         """
         Assign colors to each layer in the build definition using a two-phase approach:
@@ -155,11 +151,10 @@ class RadialBuildPlot(object):
         ]
         comp_text = ", ".join(mat_strings)
 
-        comp_string = (textwrap.fill(comp_text,
-        width=self.max_characters,
-            )
-            + "\n"
-        )
+        comp_string = textwrap.fill(
+            comp_text,
+            width=self.max_characters,
+        ) + "\n"
 
         return comp_string
 
@@ -181,18 +176,8 @@ class RadialBuildPlot(object):
             yaml.safe_dump(data_dict, file, default_flow_style=False, sort_keys=False)
 
     def get_layer_string(self, name, layer, side=None):
-    def get_layer_string(self, name, layer, side=None):
         """
         Processes a layer in the radial build dict to get formatted text for
-        the plot.
-         Arguments:
-        name (str):
-            Name of the layer.
-        layer (dict):
-            Dictionary containing the layer definition.
-        side (str, optional):
-            Which side of the radial build to use when selecting the
-            thickness.
         the plot.
          Arguments:
         name (str):
@@ -210,19 +195,14 @@ class RadialBuildPlot(object):
         min_line_height = 5
 
 
-
         thickness_str = ""
         thickness = layer[side]
         thickness_str = f': {thickness} {self.unit}'
 
-        thickness= layer[side]
-        thickness_str = f": {thickness} {self.unit}"
-        visual_thickness = thickness
 
         comp_string = ""
         if "composition" in layer:
             comp_string = self.build_composition_string(layer["composition"])
-
 
         description_str = ""
         if "description" in layer:
@@ -230,7 +210,6 @@ class RadialBuildPlot(object):
                 f'{layer["description"]}',
                 self.max_characters,
                 drop_whitespace=False,
-            )
             )
 
         text = f"{name}{thickness_str}\n{comp_string}\n{description_str}".rstrip()
@@ -241,27 +220,7 @@ class RadialBuildPlot(object):
         
         visual_thickness = min(max(thickness, min_thickness), self.max_thickness) 
 
-        visual_thickness = (
-            min(max(visual_thickness, min_thickness), self.max_thickness)
-        )
-
         return text, visual_thickness
-
-
-    def ib_ob_are_identical(self):
-        """
-        Check whether the inboard and outboard radial builds are identical.
-
-        Returns
-        -------
-        bool
-            True if every layer has the same inboard and outboard thickness,
-            False otherwise.
-        """
-        return all(
-            layer["inboard"] == layer["outboard"]
-            for layer in self.build.values()
-        )
 
     def plot_side(self, ax, side, reverse=False):
         """
@@ -285,14 +244,10 @@ class RadialBuildPlot(object):
 
         for (name, layer), color in zip(layers, colors):
             thickness = layer[side]
-            thickness = layer[side]
             if thickness == 0:
                 continue
 
             layer_str, visual_thickness = self.get_layer_string(
-                name,
-                layer,
-                side,
                 name,
                 layer,
                 side,
@@ -335,36 +290,25 @@ class RadialBuildPlot(object):
         """
         Creates radial build plots for both the inboard and outboard sides.
         """
-        if self.ib_ob_are_identical():
-            fig,ax =plt.subplots(
-                1,
-                1,
-                figsize=(self.size[0],self.size[1] / 2),
-            )
-            self.plot_side(
-                ax,
-                side = "inboard",
-                reverse= True,
-            )
 
-        else:
-            fig, axes =plt.subplots(
-                2,
-                1,
-                figsize=(self.size[0],self.size[1]),
-            )
-            self.plot_side(
-                axes[0],
-                side="outboard",
-                reverse=False,
-            )
-            self.plot_side(
-                axes[1],
-                side="outboard",
-                reverse= "False",
-            )
+        fig, axes = plt.subplots(
+            2,
+            1,
+            figsize=(self.size[0], self.size[1]),
+        )
 
-        fig.suptitle(self.title, y=1,fontsize =26)
+        self.plot_side(
+            axes[0],
+            side="inboard",
+            reverse=True,
+        )
+
+        self.plot_side(
+            axes[1],
+            side="outboard",
+            reverse=False,
+        )
+
         fig.suptitle(self.title, y=1,fontsize =26)
         plt.subplots_adjust(hspace=0.12, top=0.88, bottom=0.06)
 
@@ -440,7 +384,6 @@ class ToroidalModel(object):
     """
 
     def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
-        self.build = expand_ib_ob(build)
         self.build = expand_ib_ob(build)
         self.major_rad = major_rad
         self.minor_rad_z = minor_rad_z
@@ -550,7 +493,6 @@ class ToroidalModel(object):
                     name=layer,
                     fill=layer_def["material"],
                 )
-            materials.add(layer_def["material"])
             materials.add(layer_def["material"])
 
         self.cell_list = list(cell_dict.values())
