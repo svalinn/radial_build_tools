@@ -301,13 +301,11 @@ class RadialBuildPlot(object):
         """
         if self.ib_ob_are_identical():
             fig, ax = plt.subplots(
-                1,
-                1,
             figsize=(self.size[0], self.size[1] / 2),
             )
             self.plot_side(
                 ax,
-                side="inboard",
+                side=None,
                 reverse=True,
             )
         else:
