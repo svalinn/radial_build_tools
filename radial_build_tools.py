@@ -305,7 +305,7 @@ class RadialBuildPlot(object):
             )
             self.plot_side(
                 ax,
-                side=None,
+                side="inboard",
                 reverse=True,
             )
         else:
