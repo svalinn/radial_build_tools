@@ -198,7 +198,10 @@ class RadialBuildPlot(object):
 
 
         thickness_str = ""
-        thickness = layer[side]
+        if side is None:
+            thickness = layer["thickness"]
+        else:
+            thickness = layer[side]
         thickness_str = f': {thickness} {self.unit}'
 
 
@@ -245,7 +248,10 @@ class RadialBuildPlot(object):
             colors.reverse()
 
         for (name, layer), color in zip(layers, colors):
-            thickness = layer[side]
+            if side is None:
+                thickness = layer["thickness"]
+            else:
+                thickness = layer[side]
             if thickness == 0:
                 continue
 
@@ -286,7 +292,8 @@ class RadialBuildPlot(object):
             total_thickness += visual_thickness
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
-        ax.set_title(side.capitalize(), fontsize=2, pad=1)
+        if side is not None:
+            ax.set_title(side.capitalize(), fontsize=2, pad=1)
 
     def ib_ob_are_identical(self):
 
@@ -301,7 +308,7 @@ class RadialBuildPlot(object):
         """
         if self.ib_ob_are_identical():
             fig, ax = plt.subplots(
-            figsize=(self.size[0], self.size[1] / 2),
+                figsize=(self.size[0], self.size[1] / 2),
             )
             self.plot_side(
                 ax,
