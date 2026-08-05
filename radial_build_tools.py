@@ -228,7 +228,7 @@ class RadialBuildPlot(object):
         return text, visual_thickness
 
 
-    def plot_side(self, ax, side, reverse=False):
+    def plot_side(self, ax, side, reverse=False,plot_title=True):
         """
         Plot either the inboard or outboard radial build.
         """
@@ -292,7 +292,7 @@ class RadialBuildPlot(object):
             total_thickness += visual_thickness
         ax.set_xlim(-1, total_thickness + 1)
         ax.set_axis_off()
-        if side is not None:
+        if plot_title:
             ax.set_title(side.capitalize(), fontsize=2, pad=1)
 
     def ib_ob_are_identical(self):
@@ -314,6 +314,7 @@ class RadialBuildPlot(object):
                 ax,
                 side="inboard",
                 reverse=True,
+                plot_title=False,
             )
         else:
             fig, axes = plt.subplots(
