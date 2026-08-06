@@ -198,10 +198,7 @@ class RadialBuildPlot(object):
 
 
         thickness_str = ""
-        if side is None:
-            thickness = layer["thickness"]
-        else:
-            thickness = layer[side]
+        thickness = layer[side]
         thickness_str = f': {thickness} {self.unit}'
 
 
@@ -248,10 +245,7 @@ class RadialBuildPlot(object):
             colors.reverse()
 
         for (name, layer), color in zip(layers, colors):
-            if side is None:
-                thickness = layer["thickness"]
-            else:
-                thickness = layer[side]
+            thickness = layer[side]
             if thickness == 0:
                 continue
 
