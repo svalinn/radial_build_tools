@@ -412,6 +412,7 @@ class ToroidalModel(object):
             self.input_materials = materials
 
         self.assign_materials()
+        self.surfaces = {}
 
     def assign_materials(self):
         """
@@ -472,6 +473,7 @@ class ToroidalModel(object):
                 b=minor_rad_z,
                 c=minor_rad_xy,
             )
+        self.surfaces = surfaces
 
     def build_regions(self):
         """
