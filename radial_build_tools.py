@@ -411,6 +411,7 @@ class ToroidalModel(object):
         else:
             self.input_materials = materials
 
+        self.materials = set()
         self.assign_materials()
 
     def assign_materials(self):
@@ -515,7 +516,8 @@ class ToroidalModel(object):
 
         self.cell_list = list(cell_dict.values())
         self.cell_dict = cell_dict
-        self.materials = materials.discard(None)
+        materials.discard(None)
+        self.materials = materials
 
     def get_bounded_geometry(self):
         """
