@@ -37,6 +37,20 @@ def expand_ib_ob(build):
     return build
 
 
+def torus_volume(torus):
+    """
+    Calculate the volume of a torus
+    
+    Arguments:
+        torus: XTorus, YTorus, or Ztorus: torus to calculate the volume of
+
+    Returns:
+        vol (float): enclosed volume in cm^3
+    """
+    vol = 2.0 * np.pi**2 * torus.a * torus.b * torus.c
+    return vol
+
+
 class RadialBuildPlot(object):
     """
     Uses a radial build definition to generate radial build plots.
@@ -399,6 +413,12 @@ class ToroidalModel(object):
         materials (str or OpenMC Materials object): path to the OpenMC materials
             xml file for this model, or the corresponding Materials OpenMC
             object
+    
+    Attributes
+        surfaces (dict): {str : openmc.ZTorus}: dict of surface labels to tori
+        regions (dict): {str : openmc.Region}: dict of surface labels to regions
+        volumes (dict): {str : float}: dict of surface labels to net volumes
+            (i.e., the region volumes)
     """
 
     def __init__(self, build, major_rad, minor_rad_z, minor_rad_xy, materials):
@@ -414,6 +434,8 @@ class ToroidalModel(object):
         self.materials = set()
         self.assign_materials()
         self.surfaces = {}
+        self.regions = {}
+        self.volumes = {}
 
     def assign_materials(self):
         """
@@ -482,17 +504,24 @@ class ToroidalModel(object):
         """
         # build regions
         regions = {}
+        volumes = {}
 
         regions["plasma"] = -self.surfaces["plasma_surface"]
+        volumes["plasma"] = torus_volume(self.surfaces["plasma_surface"])
+        last_volume = volumes["plasma"]  # last outer volume
 
         surf_list = list(self.surfaces.keys())
 
         for inner_surf, outer_surf in zip(surf_list[0:-1], surf_list[1:]):
-            regions[outer_surf] = (
-                -self.surfaces[outer_surf] & +self.surfaces[inner_surf]
-            )
+            outer_torus = self.surfaces[outer_surf]
+            inner_torus = self.surfaces[inner_surf]
+            regions[outer_surf] = -outer_torus & +inner_torus
+            enclosed_volume = torus_volume(outer_torus)
+            volumes[outer_surf] = enclosed_volume - last_volume
+            last_volume = enclosed_volume
 
         self.regions = regions
+        self.volumes = volumes
         self.surf_list = surf_list
 
     def build_cells(self):
@@ -506,6 +535,7 @@ class ToroidalModel(object):
         cell_dict["plasma_cell"] = openmc.Cell(
             region=self.regions["plasma"], name="plasma_cell"
         )
+        cell_dict["plasma_cell"].volume = self.volumes["plasma"]
 
         for layer, layer_def in self.build.items():
             if layer_def["thickness"] != 0:
@@ -514,6 +544,7 @@ class ToroidalModel(object):
                     name=layer,
                     fill=layer_def["material"],
                 )
+                cell_dict[layer].volume = self.volumes[layer]
             materials.add(layer_def["material"])
 
         self.cell_list = list(cell_dict.values())
