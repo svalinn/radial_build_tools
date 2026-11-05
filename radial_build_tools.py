@@ -586,13 +586,14 @@ class ToroidalModel(object):
         """
         tally_list = []
         for layer, layer_dict in self.build.items():
-            if "scores" in layer_dict.keys():
-                for score in layer_dict["scores"]:
-                    cell_filter = openmc.CellFilter(self.cell_dict[layer])
-                    cell_tally = openmc.Tally(name=f"{layer} {score}")
-                    cell_tally.filters = [cell_filter]
-                    cell_tally.scores = [score]
-                    tally_list.append(cell_tally)
+            if "scores" not in layer_dict:
+                continue
+            cell_filter = openmc.CellFilter(self.cell_dict[layer])
+            for score in layer_dict["scores"]:
+                cell_tally = openmc.Tally(name=f"{layer} {score}")
+                cell_tally.filters = [cell_filter]
+                cell_tally.scores = [score]
+                tally_list.append(cell_tally)
         self.tallies = openmc.Tallies(tally_list)
 
     def build_openmc_model(self):
