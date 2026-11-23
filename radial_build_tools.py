@@ -639,6 +639,53 @@ class ToroidalModel(object):
         )
         return model, self.cell_dict
 
+    def validated_boundaries(boundaries, name):
+        if boundaries is None:
+             return None
+        [float(b) for b in boundaries]
+        if len(bounds) < 2:
+            raise ValueError(f"{name} boundaries need at least two angles")
+        if any(b2 <= b1 for b1, b2 in zip(bounds, bounds[1:])):
+            raise ValueError(f"{name} boundaries must be strictly increasing")
+        if bounds[-1] - bounds[0] > 360.0 + 1e-9:
+            raise ValueError(f"{name} boundaries span more than 360 degrees")
+        return bounds
+
+#Toroidal Separation:
+#Torodal angles(phi) defined by z axis, measured from the x axis toward y
+#Polodial andle(theta):degrees about the plasma magnetic axis, measured from +r direction toward +z direction
+
+    def toroidal_half(angle_degrees):
+        phi=np.radians(angle_degrees)
+        return +openmc.Plane(a=np.sin(phi),b=-np.cos(phi))
+
+    def _poloidal_halfspace(self, angle_deg):
+
+        theta = np.radians(angle_deg % 360.0)
+        s, c = np.sin(theta), np.cos(theta)
+        tol = 1e-12
+
+        if abs(c) < tol:
+            # vertical line, r = major_rad
+            cyl = openmc.ZCylinder(r=self.major_rad)
+            return -cyl if s > 0 else +cyl
+
+        if c < 0:
+            # the half-space for theta is the opposite of the one for
+            # theta + 180
+            return ~self._poloidal_halfspace(angle_deg + 180.0)
+
+        if abs(s) < tol:
+            return +openmc.ZPlane(z0=0.0)
+
+        t = s / c
+        z0 = -self.major_rad * t
+        plane = openmc.ZPlane(z0=z0)
+        cone = openmc.ZCone(z0=z0, r2=1.0 / t**2)
+        if t > 0:
+            return +plane & -cone
+        return +plane | +cone
+
 
 def parse_args():
     """Parser for running as a script"""
