@@ -638,7 +638,7 @@ class ToroidalModel(object):
             geometry=self.geometry, materials=self.materials, tallies=self.tallies
         )
         return model, self.cell_dict
-
+    @staticmethod
     def validated_boundaries(boundaries, name):
         if boundaries is None:
              return None
@@ -654,12 +654,12 @@ class ToroidalModel(object):
 #Toroidal Separation:
 #Torodal angles(phi) defined by z axis, measured from the x axis toward y
 #Polodial andle(theta):degrees about the plasma magnetic axis, measured from +r direction toward +z direction
-
+    @staticmethod
     def toroidal_half(angle_degrees):
         phi=np.radians(angle_degrees)
         return +openmc.Plane(a=np.sin(phi),b=-np.cos(phi))
 
-    def _poloidal_halfspace(self, angle_deg):
+    def poloidal_half(self, angle_deg):
 
         theta = np.radians(angle_deg % 360.0)
         s, c = np.sin(theta), np.cos(theta)
@@ -672,8 +672,7 @@ class ToroidalModel(object):
 
         if c < 0:
             # the half-space for theta is the opposite of the one for
-            # theta + 180
-            return ~self._poloidal_halfspace(angle_deg + 180.0)
+            return ~self.poloidal_half(angle_deg + 180.0)
 
         if abs(s) < tol:
             return +openmc.ZPlane(z0=0.0)
@@ -685,6 +684,69 @@ class ToroidalModel(object):
         if t > 0:
             return +plane & -cone
         return +plane | +cone
+    @staticmethod
+    def _make_wedges(bounds, halfspace_func):
+        if bounds is None:
+            return None
+        wedges = []
+        for lo_angle, hi_angle in zip(bounds[:-1], bounds[1:]):
+            span=hi_angle - lo_angle 
+            if span>= 360.0 - 1e-9:
+                wedges.append(None)
+                continue
+
+            lo = halfspace_func(lo_angle)
+            hi = halfspace_func(hi_angle)
+            wedges.append(lo & hi) if span <= 180.0 else (lo | hi)
+        return wedges
+    @staticmethod
+    def _coverage(bounds,wedges):
+        if bounds is None or bounds[0] >= 360.0 - 1e-9:
+            return None
+        return openmc.Union(wedges)
+
+    def toroidal_wedges(self, angle_1, angle_2):
+        bounds = self.validated_boundaries([angle_1, angle_2], "toroidal")
+        return self._make_wedges(bounds, self.toroidal_half)[0]
+
+    def build_partitioned_cells(self, toroidal_boundaries=None, poloidal_boundaries=None):
+        """
+        Every layer,torooidal and polodial boundaeires would get their own cell. The toroidal and poloidal boundaries are defined by the user. 
+        The toroidal boundaries are defined by angles measured from the x axis toward the y axis, and the poloidal boundaries are defined by angles about the plasma magnetic axis, measured from +r direction toward +z direction.
+        """
+        self.build_surfaces()
+        self.build_regions()
+        tor_wedges = self._make_wedges(toroidal_boundaries, self.toroidal_half)
+        pol_wedges = self._make_wedges(poloidal_boundaries, self.poloidal_half)
+
+        cell_dict = {}
+        partition_map = {}
+        materials = set()
+
+        for layer, layer_region in self.regions.items():
+            material = self.build.get(layer, {}).get("material")
+            partition_map[layer] = {}
+
+            for i, tor_wedge in enumerate(tor_wedges):
+                for j, pol_wedge in enumerate(pol_wedges):
+                    region = layer_region
+                    if tor_wedge is not None:
+                        region = region & tor_wedge
+                    if pol_wedge is not None:
+                        region = region & pol_wedge
+
+                    name = f"{layer}_t{i}_p{j}"
+                    cell = openmc.Cell(region=region, name=name, fill=material)
+                    cell_dict[name] = cell
+                    partition_map[layer][(i, j)] = cell
+
+            if material is not None:
+                materials.add(material)
+
+    def get_partitioned_cells(self, toroidal_boundaries=None, poloidal_boundaries=None):
+        self.build_partitioned_cells(toroidal_boundaries, poloidal_boundaries)
+        model = openmc.Model(geometry=self.geometry, materials=self.materials, tallies=self.tallies)
+        return model, self.cell_dict
 
 
 def parse_args():
@@ -695,14 +757,12 @@ def parse_args():
 
     return parser.parse_args()
 
-
 def read_yaml(filename):
     """Reads yaml file to extract title and build variables"""
     with open(filename) as file:
         data = yaml.safe_load(file)
 
     return data
-
 
 def main():
     args = parse_args()
@@ -711,7 +771,6 @@ def main():
     rbp = RadialBuildPlot(**data)
     rbp.plot_radial_build()
     rbp.to_png()
-
 
 if __name__ == "__main__":
     main()

@@ -28,7 +28,7 @@ materials = openmc.Materials([RAFM, PbLi, W])
 
 build = {
     "sol": {
-        "thickness": [4,200],
+        "thickness": [4,20],
         "description": "Vacuum",
     },
     "FW": {
@@ -73,6 +73,26 @@ plot.width = (
     3 *major_radius, 
     3 * major_radius,
 )
+model.cells = toroidal_model.get_partitioned_cells(
+    toroidal_boundaries=[-45, 45, 135, 225, 315],
+    poloidal_boundaries=[0, 90, 180, 270, 360],
+)
+def make_plot(name, basis, origin):
+    p = openmc.Plot()
+    p.filename = name
+    p.basis = basis
+    p.origin = origin
+    p.width = (3 * major_radius, 3 * major_radius)
+    p.pixels = (1000, 1000)
+    p.color_by = "cell"      # was "material"
+    return p
+
+model.plots = openmc.Plots([
+    make_plot("xz_slice", "xz", (0.0, 0.0, 0.0)),
+    make_plot("xy_slice", "xy", (0.0, 0.0, 1.0)),   # z=1, not exactly on the theta=0 plane
+])
+model.export_to_model_xml()
+openmc.plot_geometry()
 plot.pixels = (1000, 1000)
 plot.color_by = "material"
 
